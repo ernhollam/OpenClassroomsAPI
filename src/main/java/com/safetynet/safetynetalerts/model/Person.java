@@ -2,15 +2,9 @@ package com.safetynet.safetynetalerts.model;
 
 import lombok.Data;
 
-import javax.persistence.*;
-
 @Data
-@Entity
-@Table(name = "persons")
 public class Person {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String firstName;
