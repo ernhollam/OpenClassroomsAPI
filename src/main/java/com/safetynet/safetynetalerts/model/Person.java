@@ -18,4 +18,9 @@ public class Person {
     private String phone;
 
     private String email;
+
+    public boolean equals(Person person) {
+        return (this.getFirstName().equalsIgnoreCase(person.getFirstName())
+                && this.getLastName().equalsIgnoreCase(person.getLastName()));
+    }
 }

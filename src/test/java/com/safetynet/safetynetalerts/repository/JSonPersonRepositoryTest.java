@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.safetynetalerts.model.Person;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,10 +18,9 @@ public class JSonPersonRepositoryTest {
     private static final String       jsonDataPath = "src/test/resources/data_test.json";
     private static final File         jsonFile     = new File(jsonDataPath);
     private static final ObjectMapper mapper       = new ObjectMapper();
-    private static       List<Person> people;
+    private static       Iterable<Person> people;
 
-    @Autowired
-    JSonPersonRepository jsonPersonRepository;
+    PersonRepository jsonPersonRepository = new JSonPersonRepository();
 
     @BeforeAll
     public static void setUp() {
@@ -38,9 +36,9 @@ public class JSonPersonRepositoryTest {
 
     @Test
     public void findAll() {
-        jsonPersonRepository.findAll();
+        List<Person> testedPeople = (List<Person>) jsonPersonRepository.findAll();
 
-        assertThat(people.size()).isEqualTo(6);
+        assertThat(testedPeople.size()).isEqualTo(6);
     }
 
     @Test

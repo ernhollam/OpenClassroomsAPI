@@ -6,6 +6,7 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Optional;
 
 @Data
@@ -45,7 +46,7 @@ public class PersonService {
      * @param firstName First name of person to delete
      * @param lastName  Last name of person to delete
      */
-    public void deletePerson(final String firstName, final String lastName) {
+    public void deletePerson(final String firstName, final String lastName) throws IOException {
         personRepository.deleteByName(firstName, lastName);
     }
 
