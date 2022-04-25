@@ -1,35 +1,18 @@
 package com.safetynet.safetynetalerts.repository;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.safetynetalerts.model.Person;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class JSonPersonRepository implements PersonRepository {
 
-    private static final String           jsonDataPath = "src/main/resources/data.json";
-    private static final File             jsonFile     = new File(jsonDataPath);
-    private static final ObjectMapper     mapper       = new ObjectMapper();
-    private static       Iterable<Person> people;
-
-    public JSonPersonRepository() {
-        try {
-            JsonNode completeDataFromJsonAsNode = mapper.readTree(jsonFile);
-            JsonNode personsNode                = completeDataFromJsonAsNode.get("persons");
-            people = mapper.convertValue(personsNode, new TypeReference<List<Person>>() {
-            });
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
-    }
+    @Autowired
+    private static JSonReader jsonReader;
 
     /**
      * Save person into JSon file.
@@ -50,7 +33,7 @@ public class JSonPersonRepository implements PersonRepository {
      */
     @Override
     public Iterable<Person> findAll() {
-        return people;
+        return jsonReader.getPeopleFromJsonFile();
     }
 
     /**
@@ -64,6 +47,8 @@ public class JSonPersonRepository implements PersonRepository {
     @Override
     public Optional<Person> findByName(String firstName, String lastName) {
         Optional<Person> foundPerson = Optional.empty();
+        Iterable<Person> people      = jsonReader.getPeopleFromJsonFile();
+
         for (Person person : people) {
             if (person.getFirstName().equalsIgnoreCase(firstName) && person.getLastName().equalsIgnoreCase(lastName)) {
                 foundPerson = Optional.of(person);
@@ -82,6 +67,8 @@ public class JSonPersonRepository implements PersonRepository {
     @Override
     public void deleteByName(String firstName, String lastName) throws IOException {
         Optional<Person> personToDelete = findByName(firstName, lastName);
+        Iterable<Person> people = jsonReader.getPeopleFromJsonFile();
+
         if (personToDelete.isPresent()) {
             Iterator<Person> iterator = people.iterator();
             while (iterator.hasNext()) {
@@ -90,7 +77,7 @@ public class JSonPersonRepository implements PersonRepository {
                     iterator.remove();
                 }
             }
-            mapper.writeValue(jsonFile, people);
+            //mapper.writeValue(jsonFile, people);
         }
     }
 }
