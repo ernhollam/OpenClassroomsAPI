@@ -1,18 +1,32 @@
 package com.safetynet.safetynetalerts.repository;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.safetynet.safetynetalerts.model.Person;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.io.IOException;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
 
 @Repository
-public class JSonPersonRepository implements PersonRepository {
+public class JSonPersonRepository extends JSonRepository implements PersonRepository {
 
-    @Autowired
-    private static JSonReader jsonReader;
+    /**
+     * Reads Json file and returns a list of Person.
+     *
+     * @return a list of Person.
+     */
+    public Iterable<Person> getPeopleFromJsonFile() {
+        JsonNode completeDataFromJsonAsNode = readJsonFile();
+        if (completeDataFromJsonAsNode.isEmpty()) {
+            return Collections.emptySet();
+        } else {
+            final JsonNode personsNode = completeDataFromJsonAsNode.get("persons");
+            return getMapper().convertValue(personsNode, new TypeReference<>() {
+            });
+        }
+    }
 
     /**
      * Save person into JSon file.
@@ -33,7 +47,7 @@ public class JSonPersonRepository implements PersonRepository {
      */
     @Override
     public Iterable<Person> findAll() {
-        return jsonReader.getPeopleFromJsonFile();
+        return getPeopleFromJsonFile();
     }
 
     /**
@@ -47,7 +61,7 @@ public class JSonPersonRepository implements PersonRepository {
     @Override
     public Optional<Person> findByName(String firstName, String lastName) {
         Optional<Person> foundPerson = Optional.empty();
-        Iterable<Person> people      = jsonReader.getPeopleFromJsonFile();
+        Iterable<Person> people      = getPeopleFromJsonFile();
 
         for (Person person : people) {
             if (person.getFirstName().equalsIgnoreCase(firstName) && person.getLastName().equalsIgnoreCase(lastName)) {
@@ -65,9 +79,9 @@ public class JSonPersonRepository implements PersonRepository {
      * @param lastName  Last name of person to delete
      */
     @Override
-    public void deleteByName(String firstName, String lastName) throws IOException {
+    public void deleteByName(String firstName, String lastName) {
         Optional<Person> personToDelete = findByName(firstName, lastName);
-        Iterable<Person> people = jsonReader.getPeopleFromJsonFile();
+        Iterable<Person> people = getPeopleFromJsonFile();
 
         if (personToDelete.isPresent()) {
             Iterator<Person> iterator = people.iterator();
