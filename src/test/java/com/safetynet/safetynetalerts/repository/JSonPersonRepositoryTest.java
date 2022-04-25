@@ -1,6 +1,8 @@
 package com.safetynet.safetynetalerts.repository;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.safetynet.safetynetalerts.model.Person;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,14 +15,21 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
-public class JSonPersonRepositoryTest {
-
+public class JSonPersonRepositoryTest extends JSonRepository {
 
     /**
      * Class under test.
      */
     @Autowired
     JSonPersonRepository jsonPersonRepository;
+
+    private static JsonNode originalRootNode;
+
+    @BeforeEach
+    public JsonNode getOriginalNode(){
+        originalRootNode = readJsonFile();
+        return originalRootNode;
+    }
 
     @Test
     public void findAll() {
@@ -32,7 +41,22 @@ public class JSonPersonRepositoryTest {
     }
 
     @Test
-    void save() {
+    void save_personWithCompleteData() {
+        //GIVEN a person with complete data to add to the list
+        Person TBoyd = new Person();
+        TBoyd.setFirstName("Tenley");
+        TBoyd.setLastName("Boyd");
+        TBoyd.setAddress("1509 Culver St");
+        TBoyd.setCity("Culver");
+        TBoyd.setZip(97451);
+        TBoyd.setPhone("841-874-6512");
+        TBoyd.setEmail("tenz@email.com");
+
+        //WHEN calling save()
+        jsonPersonRepository.save(TBoyd);
+
+        //THEN
+        //TO DO calculer qu'il y a une personne de plus dans la liste par rapport à la originalRootNode
     }
 
     @Test
