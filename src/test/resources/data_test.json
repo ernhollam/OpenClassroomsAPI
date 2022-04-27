@@ -35,24 +35,6 @@
       "zip": "97451",
       "phone": "841-874-9845",
       "email": "lily@email.com"
-    },
-    {
-      "firstName": "Sophia",
-      "lastName": "Zemicks",
-      "address": "892 Downing Ct",
-      "city": "Culver",
-      "zip": "97451",
-      "phone": "841-874-7878",
-      "email": "soph@email.com"
-    },
-    {
-      "firstName": "Warren",
-      "lastName": "Zemicks",
-      "address": "892 Downing Ct",
-      "city": "Culver",
-      "zip": "97451",
-      "phone": "841-874-7512",
-      "email": "ward@email.com"
     }
   ],
   "firestations": [
@@ -144,29 +126,6 @@
       "firstName": "Lily",
       "lastName": "Cooper",
       "birthdate": "03/06/1994",
-      "medications": [],
-      "allergies": []
-    },
-    {
-      "firstName": "Sophia",
-      "lastName": "Zemicks",
-      "birthdate": "03/06/1988",
-      "medications": [
-        "aznol:60mg",
-        "hydrapermazol:900mg",
-        "pharmacol:5000mg",
-        "terazine:500mg"
-      ],
-      "allergies": [
-        "peanut",
-        "shellfish",
-        "aznol"
-      ]
-    },
-    {
-      "firstName": "Warren",
-      "lastName": "Zemicks",
-      "birthdate": "03/06/1985",
       "medications": [],
       "allergies": []
     }
