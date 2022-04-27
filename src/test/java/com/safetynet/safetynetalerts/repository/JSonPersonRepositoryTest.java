@@ -10,12 +10,11 @@ import com.safetynet.safetynetalerts.model.Person;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,29 +23,31 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS) // Use this annotation to be able to make setUp() method non-static
 public class JSonPersonRepositoryTest {
-
-
-    private static final ObjectMapper         MAPPER                  = new ObjectMapper();
-    private static final String               JSON_PATH               = new DataPathProperties().getDatasource();
-    private static final File                 JSON_FILE               = new File(JSON_PATH);
-    private static       JsonNode             ORIGINAL_ROOT_NODE;
-    private static       int                  nbPeopleBeforeAnyAction = 0;
+    private final ObjectMapper         mapper                  = new ObjectMapper();
+    private final DataPathProperties   dataPathProperties      = new DataPathProperties();
+    private final JSonRepository jSonRepository = new JSonRepository(dataPathProperties);
     /**
      * Class under test.
      */
-    @Autowired
-    private              JSonPersonRepository jsonPersonRepository;
+    private final JSonPersonRepository jsonPersonRepository    =
+            new JSonPersonRepository(jSonRepository);
+    private       File                 jsonFile;
+    private       JsonNode             originalRootNode;
+    private       int                  nbPeopleBeforeAnyAction = 0;
 
     @BeforeAll
-    public static void setUp() throws IOException {
-        JsonNode PEOPLE_NODE;
+    public void setUp() throws IOException {
+        JsonNode peopleNode;
+        String   jsonPath = jsonPersonRepository.getJSonRepository().getDatasource();
+        jsonFile = new File(jsonPath);
         try {
-            ORIGINAL_ROOT_NODE          = MAPPER.readTree(JSON_FILE);
-            PEOPLE_NODE                 = ORIGINAL_ROOT_NODE.get("persons");
-            List<Person> originalPeople = MAPPER.convertValue(PEOPLE_NODE, new TypeReference<>() {
+            originalRootNode = mapper.readTree(jsonFile);
+            peopleNode = originalRootNode.get("persons");
+            List<Person> originalPeople = mapper.convertValue(peopleNode, new TypeReference<>() {
             });
-            nbPeopleBeforeAnyAction     = originalPeople.size();
+            nbPeopleBeforeAnyAction = originalPeople.size();
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -56,16 +57,16 @@ public class JSonPersonRepositoryTest {
     public void reset() throws IOException {
         // Make sure the JSON file is in its initial state after each test
         // Create an instance of DefaultPrettyPrinter
-        ObjectWriter writer = MAPPER.writer(new DefaultPrettyPrinter());
+        ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
         // Overwrite original content to JSON data file
-        writer.writeValue(Paths.get(JSON_PATH).toFile(), ORIGINAL_ROOT_NODE);
+        writer.writeValue(jsonFile, originalRootNode);
     }
 
     @Test
     public void findAll() {
         //GIVEN JSON data file read in readJsonFile()
         //WHEN calling findAll()
-        List<Person> foundPeople = (List<Person>) jsonPersonRepository.findAll();
+        List<Person> foundPeople = jsonPersonRepository.findAll();
         //THEN there must be six persons in the test file
         assertThat(foundPeople.size()).isEqualTo(nbPeopleBeforeAnyAction);
     }
@@ -85,8 +86,8 @@ public class JSonPersonRepositoryTest {
         jsonPersonRepository.save(TBoyd);
 
         //THEN
-        Iterable<Person> actualPeople = jsonPersonRepository.getPeopleFromJsonFile();
-        int              result       = ((List<Person>) actualPeople).size();
+        List<Person> actualPeople = jsonPersonRepository.getPeopleFromJsonFile();
+        int          result       = actualPeople.size();
         assertThat(result).isEqualTo(nbPeopleBeforeAnyAction + 1);
     }
 
@@ -100,8 +101,8 @@ public class JSonPersonRepositoryTest {
         jsonPersonRepository.findByName(firstName, lastName);
 
         //THEN there must be one less person in the file
-        Iterable<Person> actualPeople = jsonPersonRepository.getPeopleFromJsonFile();
-        int              result       = ((List<Person>) actualPeople).size();
+        List<Person> actualPeople = jsonPersonRepository.getPeopleFromJsonFile();
+        int          result       = actualPeople.size();
         assertThat(result).isEqualTo(nbPeopleBeforeAnyAction - 1);
     }
 

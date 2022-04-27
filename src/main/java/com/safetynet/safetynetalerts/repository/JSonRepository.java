@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,24 +14,31 @@ import java.io.IOException;
 
 @Data
 @Slf4j
-public abstract class JSonRepository {
-    /**
-     * Object mapper.
-     */
-    static  ObjectMapper       mapper = new ObjectMapper();
+@Repository
+public class JSonRepository {
     /**
      * Property object with path to data source.
      */
-    @Autowired
-    private DataPathProperties dataPathProperties;
+    private final DataPathProperties dataPathProperties;
     /**
      * Path to JSON file.
      */
-    private String             DATASOURCE = dataPathProperties.getDatasource() ;
+    private final String             datasource;
     /**
      * JSON file.
      */
-    private    File          JSON_FILE  = new File(DATASOURCE);
+    private final File jsonFile;
+    /**
+     * Object mapper.
+     */
+    ObjectMapper mapper = new ObjectMapper();
+
+    public JSonRepository(DataPathProperties dataPathProperties) {
+        this.dataPathProperties = dataPathProperties;
+        this.datasource = dataPathProperties.getDatasource();
+        this.jsonFile = new File(datasource);
+    }
+
 
     /**
      * Reads all data from Json file.
@@ -41,11 +48,11 @@ public abstract class JSonRepository {
     public JsonNode readJsonFile() {
         // prefer returning a NullNode object instead of a null value
         JsonNode completeDataFromJsonAsNode = NullNode.getInstance();
-        log.debug("Data source path: {}", DATASOURCE);
-        log.debug("Reading JSON file {}", JSON_FILE);
+        log.debug("Data source path: {}", datasource);
+        log.debug("Reading JSON file {}", jsonFile);
 
         try {
-            completeDataFromJsonAsNode = mapper.readTree(JSON_FILE);
+            completeDataFromJsonAsNode = mapper.readTree(jsonFile);
             log.info("Resulting JsonNode read from file: {}",
                      completeDataFromJsonAsNode);
             return completeDataFromJsonAsNode;
@@ -63,17 +70,17 @@ public abstract class JSonRepository {
      * @return true if no error occurred
      */
     public boolean writeJsonFile(JsonNode nodeToAdd) {
-        log.debug("Writing data {} into JSON file {}", nodeToAdd, JSON_FILE);
+        log.debug("Writing data {} into JSON file {}", nodeToAdd, jsonFile);
         nodeToAdd = mapper.valueToTree(nodeToAdd);
         ArrayNode completeData = (ArrayNode) readJsonFile();
         completeData.add(nodeToAdd);
 
-        try (FileWriter fw = new FileWriter(JSON_FILE)){
+        try (FileWriter fw = new FileWriter(jsonFile)) {
             fw.write(completeData.toPrettyString());
             return true;
         } catch (IOException ioException) {
             log.error("Failed to write data {} into file {}: {}",
-                      nodeToAdd.toString(), JSON_FILE, ioException);
+                      nodeToAdd.toString(), jsonFile, ioException);
             return false;
         }
     }

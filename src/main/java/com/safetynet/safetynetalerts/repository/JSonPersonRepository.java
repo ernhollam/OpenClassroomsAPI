@@ -2,7 +2,9 @@ package com.safetynet.safetynetalerts.repository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.safetynetalerts.model.Person;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
@@ -13,21 +15,29 @@ import java.util.Optional;
 
 @Slf4j
 @Repository
-public class JSonPersonRepository extends JSonRepository implements PersonRepository {
+@Data
+public class JSonPersonRepository implements PersonRepository {
+
+    private final JSonRepository jSonRepository;
+    private final ObjectMapper   mapper = new ObjectMapper();
+
+    public JSonPersonRepository(JSonRepository jSonRepository) {
+        this.jSonRepository = jSonRepository;
+    }
 
     /**
      * Reads Json file and returns a list of Person.
      *
      * @return a list of Person.
      */
-    public Iterable<Person> getPeopleFromJsonFile() {
-        JsonNode completeDataFromJsonAsNode = readJsonFile();
+    public List<Person> getPeopleFromJsonFile() {
+        JsonNode completeDataFromJsonAsNode = jSonRepository.readJsonFile();
         if (completeDataFromJsonAsNode.isEmpty()) {
             log.warn("JSON file is empty of Persons.");
             return Collections.emptyList();
         } else {
             final JsonNode personsNode = completeDataFromJsonAsNode.get("persons");
-            List<Person> people = JSonRepository.mapper.
+            List<Person> people = mapper.
                     convertValue(personsNode,
                                  new TypeReference<>() {
                                  }); // Use TypeReference List<Person> to avoid casting all the
@@ -47,7 +57,7 @@ public class JSonPersonRepository extends JSonRepository implements PersonReposi
     @Override
     public Person save(Person person) {
         JsonNode newPersonNode = mapper.valueToTree(person);
-        writeJsonFile(newPersonNode);
+        jSonRepository.writeJsonFile(newPersonNode);
         log.debug("Saved new person {}.", person);
         return person;
     }
@@ -58,7 +68,7 @@ public class JSonPersonRepository extends JSonRepository implements PersonReposi
      * @return list of persons.
      */
     @Override
-    public Iterable<Person> findAll() {
+    public List<Person> findAll() {
         return getPeopleFromJsonFile();
     }
 
@@ -108,7 +118,7 @@ public class JSonPersonRepository extends JSonRepository implements PersonReposi
             }
             // update list of persons in JSON file
             JsonNode updatedPeopleList = mapper.valueToTree(people);
-            boolean  success           = writeJsonFile(updatedPeopleList);
+            boolean  success           = jSonRepository.writeJsonFile(updatedPeopleList);
             if (success) {
                 log.debug("Deleted person: {} {}", firstName, lastName);
             } else {
