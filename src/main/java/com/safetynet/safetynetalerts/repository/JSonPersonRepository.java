@@ -3,6 +3,8 @@ package com.safetynet.safetynetalerts.repository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.safetynet.safetynetalerts.model.Person;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -25,23 +27,23 @@ public class JSonPersonRepository implements PersonRepository {
         this.jSonRepository = jSonRepository;
     }
 
+
     /**
      * Reads Json file and returns a list of Person.
      *
      * @return a list of Person.
      */
     public List<Person> getPeopleFromJsonFile() {
-        JsonNode completeDataFromJsonAsNode = jSonRepository.readJsonFile();
-        if (completeDataFromJsonAsNode.isEmpty()) {
+        if (jSonRepository.getNode("root").isEmpty()) {
             log.warn("JSON file is empty of Persons.");
             return Collections.emptyList();
         } else {
-            final JsonNode personsNode = completeDataFromJsonAsNode.get("persons");
+            final JsonNode personsNode = jSonRepository.getNode("persons");
             List<Person> people = mapper.
                     convertValue(personsNode,
                                  new TypeReference<>() {
                                  }); // Use TypeReference List<Person> to avoid casting all the
-            // time when this method is calledCollections.emptyList();
+            // time when this method is called
             log.debug("Found list of people: {}", people);
             return people;
         }
@@ -54,11 +56,22 @@ public class JSonPersonRepository implements PersonRepository {
      *
      * @return person saved
      */
-    @Override
     public Person save(Person person) {
-        JsonNode newPersonNode = mapper.valueToTree(person);
-        jSonRepository.writeJsonFile(newPersonNode);
-        log.debug("Saved new person {}.", person);
+        // Get useful nodes
+        JsonNode rootNode    = jSonRepository.getNode("root");
+        JsonNode personsNode = jSonRepository.getNode("persons");
+        // Transform Person object into Json node and add to persons node
+        JsonNode newPersonAsNode = mapper.valueToTree(person);
+        ((ArrayNode) personsNode).add(newPersonAsNode);
+        // Overwrite root node with new persons node
+        updatePersonsNode((ObjectNode) rootNode, personsNode);
+        //Write data
+        boolean success = jSonRepository.writeJsonFile(rootNode);
+        if (success) {
+            log.debug("Saved new person {} {}.", person.getFirstName(), person.getLastName());
+        } else {
+            log.debug("Failed to save new person {} {}.", person.getFirstName(), person.getLastName());
+        }
         return person;
     }
 
@@ -117,8 +130,10 @@ public class JSonPersonRepository implements PersonRepository {
                 }
             }
             // update list of persons in JSON file
-            JsonNode updatedPeopleList = mapper.valueToTree(people);
-            boolean  success           = jSonRepository.writeJsonFile(updatedPeopleList);
+            JsonNode personsNode = mapper.valueToTree(people);
+            JsonNode rootNode = jSonRepository.getNode("root");
+            updatePersonsNode((ObjectNode) rootNode, personsNode);
+            boolean  success           = jSonRepository.writeJsonFile(rootNode);
             if (success) {
                 log.debug("Deleted person: {} {}", firstName, lastName);
             } else {
@@ -129,5 +144,14 @@ public class JSonPersonRepository implements PersonRepository {
             log.warn("Person {} {} does not exist in JSON file. ",
                      firstName, lastName);
         }
+    }
+
+    /**
+     * Overwrites root node with update list of persons.
+     * @param rootNode Root node
+     * @param newPersonsNode Persons node updated
+     */
+    private void updatePersonsNode(ObjectNode rootNode, JsonNode newPersonsNode ) {
+        rootNode.replace("persons", newPersonsNode);
     }
 }

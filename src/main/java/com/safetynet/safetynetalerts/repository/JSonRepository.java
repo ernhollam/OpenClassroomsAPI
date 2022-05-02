@@ -2,14 +2,13 @@ package com.safetynet.safetynetalerts.repository;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 @Data
@@ -31,7 +30,7 @@ public class JSonRepository {
     /**
      * Object mapper.
      */
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT); // Enable pretty print globally
 
     public JSonRepository(DataPathProperties dataPathProperties) {
         this.dataPathProperties = dataPathProperties;
@@ -47,40 +46,53 @@ public class JSonRepository {
      */
     public JsonNode readJsonFile() {
         // prefer returning a NullNode object instead of a null value
-        JsonNode completeDataFromJsonAsNode = NullNode.getInstance();
+        JsonNode rootNode = NullNode.getInstance();
         log.debug("Data source path: {}", datasource);
         log.debug("Reading JSON file {}", jsonFile);
 
         try {
-            completeDataFromJsonAsNode = mapper.readTree(jsonFile);
+            rootNode = mapper.readTree(jsonFile);
             log.info("Resulting JsonNode read from file: {}",
-                     completeDataFromJsonAsNode);
-            return completeDataFromJsonAsNode;
+                     rootNode);
+            return rootNode;
         } catch (IOException ioException) {
             log.error("Error while reading JSON file: ", ioException);
         }
-        return completeDataFromJsonAsNode;
+        return rootNode;
+    }
+
+    /**
+     * Gets specified node.
+     *
+     * @param nodeName String to specify the name of the node
+     *
+     * @return required node as ArrayNode
+     */
+    public JsonNode getNode(String nodeName) {
+        JsonNode rootNode = readJsonFile(); // Get root node
+        if (nodeName.equals("root")) {
+            return rootNode;
+        } else {
+            return rootNode.path(nodeName);
+        }
     }
 
     /**
      * Writes new node to Json file.
      *
-     * @param nodeToAdd New data to add to JSON file
+     * @param rootNode New data to add to JSON file
      *
      * @return true if no error occurred
      */
-    public boolean writeJsonFile(JsonNode nodeToAdd) {
-        log.debug("Writing data {} into JSON file {}", nodeToAdd, jsonFile);
-        nodeToAdd = mapper.valueToTree(nodeToAdd);
-        ArrayNode completeData = (ArrayNode) readJsonFile();
-        completeData.add(nodeToAdd);
+    public boolean writeJsonFile(JsonNode rootNode) {
+        log.debug("Writing data {} into JSON file {}", rootNode, jsonFile);
 
-        try (FileWriter fw = new FileWriter(jsonFile)) {
-            fw.write(completeData.toPrettyString());
+        try {
+            mapper.writeValue(jsonFile, rootNode);
             return true;
         } catch (IOException ioException) {
             log.error("Failed to write data {} into file {}: {}",
-                      nodeToAdd.toString(), jsonFile, ioException);
+                      rootNode.toString(), jsonFile, ioException);
             return false;
         }
     }
