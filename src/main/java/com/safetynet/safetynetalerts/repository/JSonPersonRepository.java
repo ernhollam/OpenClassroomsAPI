@@ -56,7 +56,7 @@ public class JSonPersonRepository implements PersonRepository {
      *
      * @return person saved
      */
-    public Person save(Person person) {
+    public Person save(Person person) throws Exception {
         // Get useful nodes
         JsonNode rootNode    = jSonRepository.getNode("root");
         JsonNode personsNode = jSonRepository.getNode("persons");
@@ -69,10 +69,11 @@ public class JSonPersonRepository implements PersonRepository {
         boolean success = jSonRepository.writeJsonFile(rootNode);
         if (success) {
             log.debug("Saved new person {} {}.", person.getFirstName(), person.getLastName());
+            return person;
         } else {
             log.debug("Failed to save new person {} {}.", person.getFirstName(), person.getLastName());
+            throw new Exception("Failed to save person.");
         }
-        return person;
     }
 
     /**

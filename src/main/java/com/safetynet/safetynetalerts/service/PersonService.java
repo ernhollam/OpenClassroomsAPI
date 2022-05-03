@@ -57,7 +57,7 @@ public class PersonService {
      *
      * @return Person
      */
-    public Person savePerson(final Person person) {
+    public Person savePerson(final Person person) throws Exception {
         return personRepository.save(person);
     }
 }

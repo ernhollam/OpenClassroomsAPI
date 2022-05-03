@@ -14,7 +14,7 @@ public interface PersonRepository {
      *
      * @return person saved
      */
-    Person save(Person person);
+    Person save(Person person) throws Exception;
 
     /**
      * Delete person with specified name.
