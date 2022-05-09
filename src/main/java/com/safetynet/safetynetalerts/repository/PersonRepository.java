@@ -2,7 +2,6 @@ package com.safetynet.safetynetalerts.repository;
 
 import com.safetynet.safetynetalerts.model.Person;
 
-import java.io.IOException;
 import java.util.Optional;
 
 public interface PersonRepository {
@@ -22,7 +21,7 @@ public interface PersonRepository {
      * @param firstName First name of person to delete
      * @param lastName  Last name of person to delete
      */
-    void deleteByName(String firstName, String lastName) throws IOException;
+    void deleteByName(String firstName, String lastName) throws Exception;
 
     /**
      * Get list of all persons.

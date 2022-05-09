@@ -35,7 +35,7 @@ public class JSonPersonRepository implements PersonRepository {
      */
     public List<Person> getPeopleFromJsonFile() {
         if (jSonRepository.getNode("root").isEmpty()) {
-            log.warn("JSON file is empty of Persons.");
+            log.error("JSON file is empty of Persons.");
             return Collections.emptyList();
         } else {
             final JsonNode personsNode = jSonRepository.getNode("persons");
@@ -71,7 +71,7 @@ public class JSonPersonRepository implements PersonRepository {
             log.debug("Saved new person {} {}.", person.getFirstName(), person.getLastName());
             return person;
         } else {
-            log.debug("Failed to save new person {} {}.", person.getFirstName(), person.getLastName());
+            log.error("Failed to save new person {} {}.", person.getFirstName(), person.getLastName());
             throw new Exception("Failed to save person.");
         }
     }
@@ -106,6 +106,9 @@ public class JSonPersonRepository implements PersonRepository {
                 log.debug("Found person: {}", foundPerson);
                 break;
             }
+            else {
+                log.warn("Person {} {} was not found.", firstName, lastName);
+            }
         }
         return foundPerson;
     }
@@ -117,7 +120,7 @@ public class JSonPersonRepository implements PersonRepository {
      * @param lastName  Last name of person to delete
      */
     @Override
-    public void deleteByName(String firstName, String lastName) {
+    public void deleteByName(String firstName, String lastName) throws Exception {
         Optional<Person> personToDelete = findByName(firstName, lastName);
         Iterable<Person> people         = getPeopleFromJsonFile();
 
@@ -140,10 +143,12 @@ public class JSonPersonRepository implements PersonRepository {
             } else {
                 log.error("Error when updating JSON file after deletion of Person {} {}",
                           firstName, lastName);
+                throw new Exception("Failed to update JSON file after deletion of person.");
             }
         } else {
-            log.warn("Person {} {} does not exist in JSON file. ",
+            log.error("Person {} {} does not exist in JSON file. ",
                      firstName, lastName);
+            throw new Exception("The person you are trying to delete does not exist in JSON file.");
         }
     }
 

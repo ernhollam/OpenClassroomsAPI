@@ -115,7 +115,7 @@ public class JSonPersonRepositoryTest {
     }
 
     @Test
-    void deleteByName_shouldDelete_SpecifiedPersonFromFile() {
+    void deleteByName_shouldDelete_SpecifiedPersonFromFile() throws Exception {
         //GIVEN an existing person in the test data source
         String firstName = "Jonanathan";
         String lastName  = "Marrack";
