@@ -33,7 +33,7 @@ public class JSonPersonRepository implements PersonRepository {
      *
      * @return a list of Person.
      */
-    public List<Person> getPeopleFromJsonFile() {
+    private List<Person> getPeopleFromJsonFile() {
         if (jSonRepository.getNode("root").isEmpty()) {
             log.error("JSON file is empty of Persons.");
             return Collections.emptyList();

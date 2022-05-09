@@ -32,7 +32,7 @@ public class JSonFirestationRepository implements FirestationRepository {
      *
      * @return a list of Firestations.
      */
-    public List<Firestation> getFirestationsFromJsonFile() {
+    private List<Firestation> getFirestationsFromJsonFile() {
         if (jSonRepository.getNode("root").isEmpty()) {
             log.error("JSON file is empty of Firestations.");
             return Collections.emptyList();

@@ -16,6 +16,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -61,23 +64,86 @@ private JSonFirestationRepository jSonFirestationRepository;
         mapper.writeValue(jsonFile, originalRootNode);
     }
 
+
     @Test
-    void getFirestationsFromJsonFile() {
+    public void findAll_shouldReturn_TheListOfAllFirestations() {
+        //GIVEN JSON data file read in readJsonFile()
+        //WHEN calling findAll()
+        List<Firestation> foundPeople = jSonFirestationRepository.findAll();
+        //THEN there must be six firestations in the test file
+        assertThat(foundPeople.size()).isEqualTo(nbFirestationsBeforeAnyAction);
     }
 
     @Test
-    void save() {
+    void save_shouldAddNewFirestationInFile() throws Exception {
+        //GIVEN a firestation with complete data to add to the list
+        String address = "644 Gershwin Cir";
+        int stationNumber = 1;
+        Firestation firestation = new Firestation(address, stationNumber);
+
+        //WHEN calling save()
+        jSonFirestationRepository.save(firestation);
+
+        //THEN
+        final JsonNode firestationsNode = jSonFirestationRepository.getJSonRepository().getNode("firestations");
+        List<Firestation> actualPeople =  mapper.
+                convertValue(firestationsNode,
+                             new TypeReference<>() {
+                             });
+        int          result       = actualPeople.size();
+        assertThat(result).isEqualTo(nbFirestationsBeforeAnyAction + 1);
     }
 
     @Test
-    void findAll() {
+    void save_shouldSave_firestationWithCompleteData() throws Exception {
+        //GIVEN a firestation with complete data to add to the list
+        String address = "644 Gershwin Cir";
+        int station = 1;
+        Firestation firestation = new Firestation(address, station);
+
+        //WHEN calling save()
+        jSonFirestationRepository.save(firestation);
+
+        //THEN
+        Optional<Firestation> savedFirestation = jSonFirestationRepository.findByStationNumber(station);
+        assertThat(savedFirestation).isPresent();
+        Firestation actualFirestation = savedFirestation.get();
+        assertThat(actualFirestation.getAddress()).isEqualTo(firestation.getAddress());
+        assertThat(actualFirestation.getStation()).isEqualTo(firestation.getStation());
     }
 
     @Test
-    void findByStationNumber() {
+    void deleteByName_shouldDelete_SpecifiedFirestationFromFile() throws Exception {
+        //GIVEN an existing firestation in the test data source
+        int station = 4;
+        Optional<Firestation> existingFirestation = jSonFirestationRepository.findByStationNumber(station);
+        assertThat(existingFirestation).isPresent();
+
+        // WHEN calling deleteByName()
+        jSonFirestationRepository.deleteByStationNumber(station);
+
+        //THEN there must be one less firestation in the file
+        Optional<Firestation> deletedFirestation = jSonFirestationRepository.findByStationNumber(station);
+        assertThat(deletedFirestation).isEmpty();
     }
 
     @Test
-    void deleteByStationNumber() {
+    void findByStationNumber_shouldFindOneFirestation_whenFirestationExists() {
+        //GIVEN an existing firestation in the test data source
+        int station  = 2;
+        //WHEN calling findByStationNumber()
+        Optional<Firestation> foundFirestation = jSonFirestationRepository.findByStationNumber(station);
+        //THEN there must be six firestations in the test file
+        assertThat(foundFirestation).isPresent();
+    }
+
+    @Test
+    void findByStationNumber_shouldFindNoOne_whenFirestationDoesNotExist() {
+        //GIVEN a firestation that does not exist in the test data source
+        int station = 1;
+        //WHEN calling findByStationNumber()
+        Optional<Firestation> foundFirestation = jSonFirestationRepository.findByStationNumber(station);
+        //THEN there must be six firestations in the test file
+        assertThat(foundFirestation).isEmpty();
     }
 }

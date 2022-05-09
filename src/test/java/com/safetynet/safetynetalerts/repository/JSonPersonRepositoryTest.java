@@ -60,7 +60,6 @@ public class JSonPersonRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should return the list of all people")
     public void findAll_shouldReturn_TheListOfAllPeople() {
         //GIVEN JSON data file read in readJsonFile()
         //WHEN calling findAll()
@@ -84,7 +83,11 @@ public class JSonPersonRepositoryTest {
         jsonPersonRepository.save(TBoyd);
 
         //THEN
-        List<Person> actualPeople = jsonPersonRepository.getPeopleFromJsonFile();
+        final JsonNode personsNode = jsonPersonRepository.getJSonRepository().getNode("persons");
+        List<Person> actualPeople =  mapper.
+                convertValue(personsNode,
+                             new TypeReference<>() {
+                             });
         int          result       = actualPeople.size();
         assertThat(result).isEqualTo(nbPeopleBeforeAnyAction + 1);
     }
