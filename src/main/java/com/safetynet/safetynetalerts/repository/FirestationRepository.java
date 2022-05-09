@@ -13,14 +13,14 @@ public interface FirestationRepository {
      *
      * @return firestation saved
      */
-    Firestation save(Firestation firestation);
+    Firestation save(Firestation firestation) throws Exception;
 
     /**
      * Delete firestation with specified id.
      *
      * @param id ID of firestation to delete
      */
-    void deleteById(Long id);
+    void deleteByStationNumber(int id) throws Exception;
 
     /**
      * Get list of all firestations.
@@ -36,5 +36,5 @@ public interface FirestationRepository {
      *
      * @return Found firestation
      */
-    Optional<Firestation> findById(Long id);
+    Optional<Firestation> findByStationNumber(int id);
 }

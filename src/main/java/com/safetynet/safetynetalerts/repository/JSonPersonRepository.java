@@ -21,7 +21,7 @@ import java.util.Optional;
 public class JSonPersonRepository implements PersonRepository {
 
     private final JSonRepository jSonRepository;
-    private final ObjectMapper   mapper = new ObjectMapper();
+    private final ObjectMapper   personMapper = new ObjectMapper();
 
     public JSonPersonRepository(JSonRepository jSonRepository) {
         this.jSonRepository = jSonRepository;
@@ -39,7 +39,7 @@ public class JSonPersonRepository implements PersonRepository {
             return Collections.emptyList();
         } else {
             final JsonNode personsNode = jSonRepository.getNode("persons");
-            List<Person> people = mapper.
+            List<Person> people = personMapper.
                     convertValue(personsNode,
                                  new TypeReference<>() {
                                  }); // Use TypeReference List<Person> to avoid casting all the
@@ -61,7 +61,7 @@ public class JSonPersonRepository implements PersonRepository {
         JsonNode rootNode    = jSonRepository.getNode("root");
         JsonNode personsNode = jSonRepository.getNode("persons");
         // Transform Person object into Json node and add to persons node
-        JsonNode newPersonAsNode = mapper.valueToTree(person);
+        JsonNode newPersonAsNode = personMapper.valueToTree(person);
         ((ArrayNode) personsNode).add(newPersonAsNode);
         // Overwrite root node with new persons node
         updatePersonsNode((ObjectNode) rootNode, personsNode);
@@ -105,8 +105,7 @@ public class JSonPersonRepository implements PersonRepository {
                 foundPerson = Optional.of(person);
                 log.debug("Found person: {}", foundPerson);
                 break;
-            }
-            else {
+            } else {
                 log.warn("Person {} {} was not found.", firstName, lastName);
             }
         }
@@ -134,30 +133,32 @@ public class JSonPersonRepository implements PersonRepository {
                 }
             }
             // update list of persons in JSON file
-            JsonNode personsNode = mapper.valueToTree(people);
-            JsonNode rootNode = jSonRepository.getNode("root");
+            JsonNode personsNode = personMapper.valueToTree(people);
+            JsonNode rootNode    = jSonRepository.getNode("root");
             updatePersonsNode((ObjectNode) rootNode, personsNode);
-            boolean  success           = jSonRepository.writeJsonFile(rootNode);
+            boolean success = jSonRepository.writeJsonFile(rootNode);
             if (success) {
                 log.debug("Deleted person: {} {}", firstName, lastName);
             } else {
                 log.error("Error when updating JSON file after deletion of Person {} {}",
                           firstName, lastName);
-                throw new Exception("Failed to update JSON file after deletion of person.");
+                throw new Exception("Failed to update JSON file after deletion of person " + firstName + " " + lastName + ".");
             }
         } else {
             log.error("Person {} {} does not exist in JSON file. ",
-                     firstName, lastName);
-            throw new Exception("The person you are trying to delete does not exist in JSON file.");
+                      firstName, lastName);
+            throw new Exception("The person (" + firstName + " " + lastName + " you are trying to delete does not " +
+                                "exist in JSON file.");
         }
     }
 
     /**
-     * Overwrites root node with update list of persons.
-     * @param rootNode Root node
-     * @param newPersonsNode Persons node updated
+     * Overwrites root node with updated list of persons.
+     *
+     * @param rootNode       Root node
+     * @param updatedPersonsNode Persons node updated
      */
-    private void updatePersonsNode(ObjectNode rootNode, JsonNode newPersonsNode ) {
-        rootNode.replace("persons", newPersonsNode);
+    private void updatePersonsNode(ObjectNode rootNode, JsonNode updatedPersonsNode) {
+        rootNode.replace("persons", updatedPersonsNode);
     }
 }
