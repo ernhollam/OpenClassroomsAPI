@@ -21,12 +21,13 @@ public class MedicalRecordService {
     /**
      * Get medicalRecord.
      *
-     * @param id MedicalRecord's id
+     * @param firstName Person's first name in medical record
+     * @param lastName  Person's last name in medical record
      *
      * @return MedicalRecord a medicalRecord if not empty
      */
-    public Optional<MedicalRecord> getMedicalRecord(final Long id) {
-        return medicalRecordRepository.findById(id);
+    public Optional<MedicalRecord> getMedicalRecordByName(final String firstName, final String lastName) {
+        return medicalRecordRepository.findByName(firstName, lastName);
     }
 
     /**
@@ -41,10 +42,11 @@ public class MedicalRecordService {
     /**
      * Delete medicalRecord with given id.
      *
-     * @param id ID of medicalRecord to delete
+     * @param firstName Person's first name in medical record to delete
+     * @param lastName  Person's last name in medical record to delete
      */
-    public void deleteMedicalRecord(final Long id) {
-        medicalRecordRepository.deleteById(id);
+    public void deleteMedicalRecord(final String firstName, final String lastName) throws Exception {
+        medicalRecordRepository.deleteByName(firstName, lastName);
     }
 
     /**
@@ -54,7 +56,7 @@ public class MedicalRecordService {
      *
      * @return MedicalRecord
      */
-    public MedicalRecord saveMedicalRecord(final MedicalRecord medicalRecord) {
+    public MedicalRecord saveMedicalRecord(final MedicalRecord medicalRecord) throws Exception {
         return medicalRecordRepository.save(medicalRecord);
     }
 }

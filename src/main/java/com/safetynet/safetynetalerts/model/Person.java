@@ -1,11 +1,13 @@
 package com.safetynet.safetynetalerts.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Person {
-
-    private Long id;
 
     private String firstName;
 
@@ -20,4 +22,9 @@ public class Person {
     private String phone;
 
     private String email;
+
+    public boolean equals(Person person) {
+        return (this.getFirstName().equalsIgnoreCase(person.getFirstName())
+                && this.getLastName().equalsIgnoreCase(person.getLastName()));
+    }
 }

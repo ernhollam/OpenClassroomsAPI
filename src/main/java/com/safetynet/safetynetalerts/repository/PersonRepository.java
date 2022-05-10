@@ -13,14 +13,15 @@ public interface PersonRepository {
      *
      * @return person saved
      */
-    Person save(Person person);
+    Person save(Person person) throws Exception;
 
     /**
-     * Delete person with specified id.
+     * Delete person with specified name.
      *
-     * @param id ID of person to delete
+     * @param firstName First name of person to delete
+     * @param lastName  Last name of person to delete
      */
-    void deleteById(Long id);
+    void deleteByName(String firstName, String lastName) throws Exception;
 
     /**
      * Get list of all persons.
@@ -30,11 +31,13 @@ public interface PersonRepository {
     Iterable<Person> findAll();
 
     /**
-     * Find person with specified ID.
+     * Find person with specified email.
      *
-     * @param id ID of person to find
+     * @param firstName First name of person to find
+     * @param lastName  Last name of person to find
      *
      * @return Found person
      */
-    Optional<Person> findById(Long id);
+    Optional<Person> findByName(String firstName, String lastName);
+
 }

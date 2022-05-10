@@ -21,12 +21,13 @@ public class PersonService {
     /**
      * Get person.
      *
-     * @param id Person's id
+     * @param firstName Person's first name
+     * @param lastName  Person's last name
      *
      * @return Person a person if not empty
      */
-    public Optional<Person> getPerson(final Long id) {
-        return personRepository.findById(id);
+    public Optional<Person> getPersonByName(final String firstName, final String lastName) {
+        return personRepository.findByName(firstName, lastName);
     }
 
     /**
@@ -39,12 +40,13 @@ public class PersonService {
     }
 
     /**
-     * Delete person with given id.
+     * Delete person with given name.
      *
-     * @param id ID of person to delete
+     * @param firstName First name of person to delete
+     * @param lastName  Last name of person to delete
      */
-    public void deletePerson(final Long id) {
-        personRepository.deleteById(id);
+    public void deletePerson(final String firstName, final String lastName) throws Exception {
+        personRepository.deleteByName(firstName, lastName);
     }
 
     /**
@@ -54,7 +56,7 @@ public class PersonService {
      *
      * @return Person
      */
-    public Person savePerson(final Person person) {
+    public Person savePerson(final Person person) throws Exception {
         return personRepository.save(person);
     }
 }
