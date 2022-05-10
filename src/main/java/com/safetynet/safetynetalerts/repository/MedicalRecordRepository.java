@@ -12,14 +12,15 @@ public interface MedicalRecordRepository {
      *
      * @return medical record saved
      */
-    MedicalRecord save(MedicalRecord medicalRecord);
+    MedicalRecord save(MedicalRecord medicalRecord) throws Exception;
 
     /**
      * Delete medical record with specified id.
      *
-     * @param id ID of medical record to delete
+     * @param firstName First name of medical record to delete
+     * @param lastName  Last name of medical record to delete
      */
-    void deleteById(Long id);
+    void deleteByName(String firstName, String lastName) throws Exception;
 
     /**
      * Get list of all medical records.
@@ -31,9 +32,10 @@ public interface MedicalRecordRepository {
     /**
      * Find medical record with specified ID.
      *
-     * @param id ID of medical record to find
+     * @param firstName First name of medical record to find
+     * @param lastName  Last name of medical record to find
      *
      * @return Found medical record
      */
-    Optional<MedicalRecord> findById(Long id);
+    Optional<MedicalRecord> findByName(String firstName, String lastName);
 }

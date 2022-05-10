@@ -25,8 +25,8 @@ public class FirestationService {
      *
      * @return Firestation a firestation if not empty
      */
-    public Optional<Firestation> getFirestation(final Long id) {
-        return firestationRepository.findById(id);
+    public Optional<Firestation> getFirestation(final int id) {
+        return firestationRepository.findByStationNumber(id);
     }
 
     /**
@@ -43,8 +43,8 @@ public class FirestationService {
      *
      * @param id ID of firestation to delete
      */
-    public void deleteFirestation(final Long id) {
-        firestationRepository.deleteById(id);
+    public void deleteFirestation(final int id) throws Exception {
+        firestationRepository.deleteByStationNumber(id);
     }
 
     /**
@@ -54,7 +54,7 @@ public class FirestationService {
      *
      * @return Firestation
      */
-    public Firestation saveFirestation(final Firestation firestation) {
+    public Firestation saveFirestation(final Firestation firestation) throws Exception {
         return firestationRepository.save(firestation);
     }
 }
