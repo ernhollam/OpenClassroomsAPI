@@ -21,10 +21,11 @@ import java.util.Optional;
 public class JSonMedicalRecordRepository implements MedicalRecordRepository {
 
     private final JSonRepository jSonRepository;
-    private final ObjectMapper   medRecordMapper = new ObjectMapper();
+    private final ObjectMapper   medRecordMapper;
 
     public JSonMedicalRecordRepository(JSonRepository jSonRepository) {
         this.jSonRepository = jSonRepository;
+        this.medRecordMapper = jSonRepository.getMapper();
     }
 
 
@@ -34,11 +35,13 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
      * @return a list of MedicalRecords.
      */
     private List<MedicalRecord> getMedicalRecordsFromJsonFile() {
-        if (jSonRepository.getNode("root").isEmpty()) {
+
+        final JsonNode medRecordsNode = jSonRepository.getNode("medicalrecords");
+
+        if (medRecordsNode.isEmpty()) {
             log.error("No medical records exist in JSON file.");
             return Collections.emptyList();
         } else {
-            final JsonNode medRecordsNode = jSonRepository.getNode("medicalrecords");
             List<MedicalRecord> medicalRecords = medRecordMapper.
                     convertValue(medRecordsNode,
                                  new TypeReference<>() {
@@ -59,7 +62,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     @Override
     public MedicalRecord save(MedicalRecord medicalRecord) throws Exception {
         // Get useful nodes
-        JsonNode rootNode    = jSonRepository.getNode("root");
+        JsonNode rootNode       = jSonRepository.getNode("root");
         JsonNode medRecordsNode = jSonRepository.getNode("medicalrecords");
         // Transform MedicalRecord object into Json node and add to medicalRecords node
         JsonNode newMedicalRecordAsNode = medRecordMapper.valueToTree(medicalRecord);
@@ -72,7 +75,8 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
             log.debug("Saved new medicalRecord {} {}.", medicalRecord.getFirstName(), medicalRecord.getLastName());
             return medicalRecord;
         } else {
-            log.error("Failed to save new medicalRecord {} {}.", medicalRecord.getFirstName(), medicalRecord.getLastName());
+            log.error("Failed to save new medicalRecord {} {}.", medicalRecord.getFirstName(),
+                      medicalRecord.getLastName());
             throw new Exception("Failed to save medicalRecord.");
         }
     }
@@ -98,7 +102,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     @Override
     public Optional<MedicalRecord> findByName(String firstName, String lastName) {
         Optional<MedicalRecord> foundMedicalRecord = Optional.empty();
-        Iterable<MedicalRecord> medicalRecords      = getMedicalRecordsFromJsonFile();
+        Iterable<MedicalRecord> medicalRecords     = getMedicalRecordsFromJsonFile();
 
         for (MedicalRecord medicalRecord : medicalRecords) {
             if (medicalRecord.getFirstName().equalsIgnoreCase(firstName)
@@ -122,7 +126,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     @Override
     public void deleteByName(String firstName, String lastName) throws Exception {
         Optional<MedicalRecord> medicalRecordToDelete = findByName(firstName, lastName);
-        Iterable<MedicalRecord> people         = getMedicalRecordsFromJsonFile();
+        Iterable<MedicalRecord> people                = getMedicalRecordsFromJsonFile();
 
         if (medicalRecordToDelete.isPresent()) {
             Iterator<MedicalRecord> iterator = people.iterator();
@@ -135,7 +139,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
             }
             // update list of medical records in JSON file
             JsonNode medicalRecordsNode = medRecordMapper.valueToTree(people);
-            JsonNode rootNode    = jSonRepository.getNode("root");
+            JsonNode rootNode           = jSonRepository.getNode("root");
             updateMedicalRecordsNode((ObjectNode) rootNode, medicalRecordsNode);
             boolean success = jSonRepository.writeJsonFile(rootNode);
             if (success) {
@@ -159,10 +163,10 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     /**
      * Overwrites root node with updated list of medicalRecords.
      *
-     * @param rootNode       Root node
+     * @param rootNode                  Root node
      * @param updatedMedicalRecordsNode MedicalRecords node updated
      */
     private void updateMedicalRecordsNode(ObjectNode rootNode, JsonNode updatedMedicalRecordsNode) {
-        rootNode.replace("medicalRecords", updatedMedicalRecordsNode);
+        rootNode.replace("medicalrecords", updatedMedicalRecordsNode);
     }
 }

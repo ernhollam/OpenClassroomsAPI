@@ -34,11 +34,12 @@ public class JSonPersonRepository implements PersonRepository {
      * @return a list of Person.
      */
     private List<Person> getPeopleFromJsonFile() {
-        if (jSonRepository.getNode("root").isEmpty()) {
+        final JsonNode personsNode = jSonRepository.getNode("persons");
+
+        if (personsNode.isEmpty()) {
             log.error("No people exist in JSON file.");
             return Collections.emptyList();
         } else {
-            final JsonNode personsNode = jSonRepository.getNode("persons");
             List<Person> people = personMapper.
                     convertValue(personsNode,
                                  new TypeReference<>() {
@@ -114,7 +115,8 @@ public class JSonPersonRepository implements PersonRepository {
 
     /**
      * Delete person with specified name from JSon file.
-     *  @param firstName First name of person to delete
+     *
+     * @param firstName First name of person to delete
      * @param lastName  Last name of person to delete
      */
     @Override
@@ -154,7 +156,7 @@ public class JSonPersonRepository implements PersonRepository {
     /**
      * Overwrites root node with updated list of persons.
      *
-     * @param rootNode       Root node
+     * @param rootNode           Root node
      * @param updatedPersonsNode Persons node updated
      */
     private void updatePersonsNode(ObjectNode rootNode, JsonNode updatedPersonsNode) {

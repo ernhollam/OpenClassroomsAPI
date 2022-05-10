@@ -33,11 +33,12 @@ public class JSonFirestationRepository implements FirestationRepository {
      * @return a list of Firestations.
      */
     private List<Firestation> getFirestationsFromJsonFile() {
-        if (jSonRepository.getNode("root").isEmpty()) {
+        final JsonNode firestationsNode = jSonRepository.getNode("firestations");
+
+        if (firestationsNode.isEmpty()) {
             log.error("No firestations exist in JSON file.");
             return Collections.emptyList();
         } else {
-            final JsonNode firestationsNode = jSonRepository.getNode("firestations");
             List<Firestation> firestations = firestationMapper.
                     convertValue(firestationsNode,
                                  new TypeReference<>() {
