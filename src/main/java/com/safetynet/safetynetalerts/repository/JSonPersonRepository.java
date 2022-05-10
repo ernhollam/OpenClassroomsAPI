@@ -35,7 +35,7 @@ public class JSonPersonRepository implements PersonRepository {
      */
     private List<Person> getPeopleFromJsonFile() {
         if (jSonRepository.getNode("root").isEmpty()) {
-            log.error("JSON file is empty of Persons.");
+            log.error("No people exist in JSON file.");
             return Collections.emptyList();
         } else {
             final JsonNode personsNode = jSonRepository.getNode("persons");
@@ -114,8 +114,7 @@ public class JSonPersonRepository implements PersonRepository {
 
     /**
      * Delete person with specified name from JSon file.
-     *
-     * @param firstName First name of person to delete
+     *  @param firstName First name of person to delete
      * @param lastName  Last name of person to delete
      */
     @Override
@@ -147,7 +146,7 @@ public class JSonPersonRepository implements PersonRepository {
         } else {
             log.error("Person {} {} does not exist in JSON file. ",
                       firstName, lastName);
-            throw new Exception("The person (" + firstName + " " + lastName + " you are trying to delete does not " +
+            throw new Exception("The person (" + firstName + " " + lastName + ") you are trying to delete does not " +
                                 "exist in JSON file.");
         }
     }

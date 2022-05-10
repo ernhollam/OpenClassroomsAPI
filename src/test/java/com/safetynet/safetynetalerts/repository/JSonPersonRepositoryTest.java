@@ -6,7 +6,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.safetynet.safetynetalerts.model.Person;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -16,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // Use this annotation to be able to make setUp() method non-static
@@ -118,7 +122,7 @@ public class JSonPersonRepositoryTest {
     }
 
     @Test
-    void deleteByName_shouldDelete_SpecifiedPersonFromFile() throws Exception {
+    void deleteByName_shouldDelete_SpecifiedPersonFromFile_whenPersonExists() throws Exception {
         //GIVEN an existing person in the test data source
         String firstName = "Jonanathan";
         String lastName  = "Marrack";
@@ -131,6 +135,19 @@ public class JSonPersonRepositoryTest {
         //THEN there must be one less person in the file
         Optional<Person> deletedPerson = jsonPersonRepository.findByName(firstName, lastName);
         assertThat(deletedPerson).isEmpty();
+    }
+
+    @Test
+    void deleteByName_shouldNotDelete_WhenPersonDoesNotExist() throws Exception {
+        //GIVEN a person who does not exist in the test data source
+        String firstName = "Brian";
+        String lastName  = "Stelzer";
+        Optional<Person> nonExistingPerson = jsonPersonRepository.findByName(firstName, lastName);
+        assertThat(nonExistingPerson).isEmpty();
+
+        // WHEN calling deleteByName()
+        // THEN there must be an exception thrown
+        assertThrows(Exception.class, () -> jsonPersonRepository.deleteByName(firstName, lastName));
     }
 
     @Test

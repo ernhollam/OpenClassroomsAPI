@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -113,18 +114,30 @@ private JSonFirestationRepository jSonFirestationRepository;
     }
 
     @Test
-    void deleteByName_shouldDelete_SpecifiedFirestationFromFile() throws Exception {
+    void deleteByStationNumber_shouldDelete_SpecifiedFirestationFromFile() throws Exception {
         //GIVEN an existing firestation in the test data source
         int station = 4;
         Optional<Firestation> existingFirestation = jSonFirestationRepository.findByStationNumber(station);
         assertThat(existingFirestation).isPresent();
 
-        // WHEN calling deleteByName()
+        // WHEN calling deleteByStationNumber()
         jSonFirestationRepository.deleteByStationNumber(station);
 
         //THEN there must be one less firestation in the file
         Optional<Firestation> deletedFirestation = jSonFirestationRepository.findByStationNumber(station);
         assertThat(deletedFirestation).isEmpty();
+    }
+
+    @Test
+    void deleteByName_shouldNotDelete_WhenFirestationDoesNotExist() throws Exception {
+        //GIVEN an existing person in the test data source
+        int station = 1;
+        Optional<Firestation> nonExistingFirestation = jSonFirestationRepository.findByStationNumber(station);
+        assertThat(nonExistingFirestation).isEmpty();
+
+        // WHEN calling deleteByStationNumber()
+        // THEN there must be an exception thrown
+        assertThrows(Exception.class, () -> jSonFirestationRepository.deleteByStationNumber(station));
     }
 
     @Test

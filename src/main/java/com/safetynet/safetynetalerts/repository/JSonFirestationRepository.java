@@ -34,7 +34,7 @@ public class JSonFirestationRepository implements FirestationRepository {
      */
     private List<Firestation> getFirestationsFromJsonFile() {
         if (jSonRepository.getNode("root").isEmpty()) {
-            log.error("JSON file is empty of Firestations.");
+            log.error("No firestations exist in JSON file.");
             return Collections.emptyList();
         } else {
             final JsonNode firestationsNode = jSonRepository.getNode("firestations");
