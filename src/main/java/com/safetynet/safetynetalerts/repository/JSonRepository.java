@@ -37,6 +37,13 @@ public class JSonRepository {
      */
     ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT); // Enable pretty print globally
 
+    /**
+     * JSonRepository constructor
+     *
+     * @param dataPathProperties
+     *         Path to application properties
+     */
+
     public JSonRepository(DataPathProperties dataPathProperties) {
         this.dataPathProperties = dataPathProperties;
         this.datasource = dataPathProperties.getDatasource();
@@ -44,9 +51,28 @@ public class JSonRepository {
     }
 
     /**
+     * Converts any object to Json.
+     *
+     * @param obj
+     *         Any object to convert into a Json String
+     *
+     * @return Object as json string.
+     */
+    public static String toJsonString(final Object obj) {
+        try {
+            log.debug("Converting object {} to Json String", obj);
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            log.error("An error occurred when converting object {} to JSON.\n" + e.getMessage());
+            return "";
+        }
+    }
+
+    /**
      * Configures ObjectMapper to deserialize dates as LocalDate.
      *
-     * @param mapper An ObjectMapper
+     * @param mapper
+     *         An ObjectMapper
      */
     private void configureMapper(ObjectMapper mapper) {
         // configure mapper to deserialize dates to LocalDate
@@ -87,7 +113,8 @@ public class JSonRepository {
     /**
      * Gets specified node.
      *
-     * @param nodeName String to specify the name of the node
+     * @param nodeName
+     *         String to specify the name of the node
      *
      * @return required node as ArrayNode
      */
@@ -103,7 +130,8 @@ public class JSonRepository {
     /**
      * Writes new node to Json file.
      *
-     * @param rootNode New data to add to JSON file
+     * @param rootNode
+     *         New data to add to JSON file
      *
      * @return true if no error occurred
      */

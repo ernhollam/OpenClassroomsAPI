@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import org.junit.jupiter.api.AfterEach;
@@ -21,6 +22,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // Use this annotation to be able to make setUp() method non-static
@@ -71,6 +73,18 @@ public class JSonPersonRepositoryTest {
         List<Person> foundPeople = jsonPersonRepository.findAll();
         //THEN there must be six persons in the test file
         assertThat(foundPeople.size()).isEqualTo(nbPeopleBeforeAnyAction);
+    }
+
+    @Test
+    public void findAll_shouldReturn_EmptyList_WhenNodeIsEmpty() throws IOException {
+        // GIVEN a file with no medical records
+        ObjectNode updatedRootNode = originalRootNode.deepCopy();
+        updatedRootNode.remove("persons");
+        mapper.writeValue(jsonFile, updatedRootNode);
+        // WHEN calling findAll()
+        List<Person> foundPeople = jsonPersonRepository.findAll();
+        //THEN there must be six persons in the test file
+        assertTrue(foundPeople.isEmpty());
     }
 
     @Test
@@ -178,18 +192,24 @@ public class JSonPersonRepositoryTest {
         // GIVEN existing  person John Boyd with different address and different phone number
         String newAddress = "112 Steppes Pl";
         String newPhone   = "841-874-9888";
+        String newCity    = "Figeac";
+        int    newZip     = 46100;
+        String newEmail   = "johnboyd@email.com";
         Person johnBoyd = new Person("John",
                                      "Boyd",
                                      newAddress,
-                                     "Culver",
-                                     97451,
+                                     newCity,
+                                     newZip,
                                      newPhone,
-                                     "jaboyd@email.com");
+                                     newEmail);
         // WHEN calling update()
         Person updatedPerson = jsonPersonRepository.update(johnBoyd);
         //THEN
         assertThat(updatedPerson.getAddress()).isEqualTo(newAddress);
+        assertThat(updatedPerson.getCity()).isEqualTo(newCity);
+        assertThat(updatedPerson.getZip()).isEqualTo(newZip);
         assertThat(updatedPerson.getPhone()).isEqualTo(newPhone);
+        assertThat(updatedPerson.getEmail()).isEqualTo(newEmail);
     }
 
     @Test

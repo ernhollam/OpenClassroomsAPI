@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.safetynet.safetynetalerts.exceptions.ResourceAlreadyExistsException;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import lombok.Data;
@@ -55,38 +54,31 @@ public class JSonPersonRepository implements IPersonRepository {
     /**
      * Save person into JSon file.
      *
-     * @param personToSave Person to save
+     * @param personToSave
+     *         Person to save
      *
      * @return person saved
      */
     public Person save(Person personToSave) throws Exception {
-        String           firstName          = personToSave.getFirstName();
-        String           lastName           = personToSave.getLastName();
-        Optional<Person> personInDataSource = findByName(firstName, lastName);
-        if (personInDataSource.isEmpty()) {
-            // Get useful nodes
-            JsonNode rootNode    = jSonRepository.getNode("root");
-            JsonNode personsNode = jSonRepository.getNode("persons");
-            // Transform Person object into Json node and add to persons node
-            JsonNode newPersonAsNode = personMapper.valueToTree(personToSave);
-            ((ArrayNode) personsNode).add(newPersonAsNode);
-            // Overwrite root node with new persons node
-            updatePersonsNode((ObjectNode) rootNode, personsNode);
-            //Write data
-            boolean success = jSonRepository.writeJsonFile(rootNode);
-            if (success) {
-                log.debug("Saved new person {} {}.", firstName, lastName);
-                return personToSave;
-            } else {
-                String saveFailedErrorMessage = "Failed to save person: " + firstName + " " + lastName + ".";
-                log.error(saveFailedErrorMessage);
-                throw new Exception(saveFailedErrorMessage);
-            }
+        String firstName = personToSave.getFirstName();
+        String lastName  = personToSave.getLastName();
+        // Get useful nodes
+        JsonNode rootNode    = jSonRepository.getNode("root");
+        JsonNode personsNode = jSonRepository.getNode("persons");
+        // Transform Person object into Json node and add to persons node
+        JsonNode newPersonAsNode = personMapper.valueToTree(personToSave);
+        ((ArrayNode) personsNode).add(newPersonAsNode);
+        // Overwrite root node with new persons node
+        updatePersonsNode((ObjectNode) rootNode, personsNode);
+        //Write data
+        boolean success = jSonRepository.writeJsonFile(rootNode);
+        if (success) {
+            log.debug("Saved new person {} {}.", firstName, lastName);
+            return personToSave;
         } else {
-            String alreadyExistsErrorMessage = "The person (" + firstName + " " + lastName + ") you are trying to " +
-                                               "save already exists.";
-            log.error(alreadyExistsErrorMessage);
-            throw new ResourceAlreadyExistsException(alreadyExistsErrorMessage);
+            String saveFailedErrorMessage = "Failed to save person: " + firstName + " " + lastName + ".";
+            log.error(saveFailedErrorMessage);
+            throw new Exception(saveFailedErrorMessage);
         }
     }
 
@@ -103,8 +95,10 @@ public class JSonPersonRepository implements IPersonRepository {
     /**
      * Find person with specified name.
      *
-     * @param firstName First name of person to find
-     * @param lastName  Last name of person to find
+     * @param firstName
+     *         First name of person to find
+     * @param lastName
+     *         Last name of person to find
      *
      * @return Found person
      */
@@ -127,9 +121,11 @@ public class JSonPersonRepository implements IPersonRepository {
     /**
      * Updates a person.
      *
-     * @param personToUpdate Person to update.
+     * @param personToUpdate
+     *         Person to update.
      *
-     * @throws Exception thrown when update failed.
+     * @throws Exception
+     *         thrown when update failed.
      */
     @Override
     public Person update(Person personToUpdate) throws Exception {
@@ -177,8 +173,10 @@ public class JSonPersonRepository implements IPersonRepository {
     /**
      * Delete person with specified name from JSon file.
      *
-     * @param firstName First name of person to delete
-     * @param lastName  Last name of person to delete
+     * @param firstName
+     *         First name of person to delete
+     * @param lastName
+     *         Last name of person to delete
      */
     @Override
     public void deleteByName(String firstName, String lastName) throws Exception {
@@ -216,8 +214,10 @@ public class JSonPersonRepository implements IPersonRepository {
     /**
      * Overwrites root node with updated list of persons.
      *
-     * @param rootNode           Root node
-     * @param updatedPersonsNode Persons node updated
+     * @param rootNode
+     *         Root node
+     * @param updatedPersonsNode
+     *         Persons node updated
      */
     private void updatePersonsNode(ObjectNode rootNode, JsonNode updatedPersonsNode) {
         rootNode.replace("persons", updatedPersonsNode);

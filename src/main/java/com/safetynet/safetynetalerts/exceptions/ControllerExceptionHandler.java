@@ -14,12 +14,12 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String resourceNotFoundException(ResourceNotFoundException notFoundException) {
-        return "Resource not found: " + notFoundException.getMessage();
+        return "Resource not found:\n" + notFoundException.getMessage();
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String returnMessage(Exception exception) {
-        return "An error occurred: " + exception.getMessage();
+        return "An error occurred:\n " + exception.getMessage();
     }
 }
