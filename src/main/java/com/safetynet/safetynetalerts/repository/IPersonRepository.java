@@ -4,7 +4,7 @@ import com.safetynet.safetynetalerts.model.Person;
 
 import java.util.Optional;
 
-public interface PersonRepository {
+public interface IPersonRepository {
 
     /**
      * Save person.
@@ -44,6 +44,8 @@ public interface PersonRepository {
      * Updates a person.
      *
      * @param person Person to update.
+     *
+     * @return updated person
      *
      * @throws Exception thrown when update failed.
      */

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -163,7 +164,7 @@ public class JSonMedicalRecordRepositoryTest {
     }
 
     @Test
-    void deleteByName_shouldNotDelete_WhenMedicalRecordDoesNotExist() throws Exception {
+    void deleteByName_shouldNotDelete_WhenMedicalRecordDoesNotExist() {
         //GIVEN a person who does not exist in the test data source
         String                  firstName                = "Brian";
         String                  lastName                 = "Stelzer";
@@ -195,5 +196,40 @@ public class JSonMedicalRecordRepositoryTest {
         Optional<MedicalRecord> foundMedicalRecord = jSonMedicalRecordRepository.findByName(firstName, lastName);
         //THEN there must be six persons in the test file
         assertThat(foundMedicalRecord).isEmpty();
+    }
+
+    @Test
+    void update_shouldReturn_updatedMedicalRecord_whenExists() throws Exception {
+        // GIVEN existing medical record John Boyd with added medications
+        String[] medications = {"tradoxidine:400mg",
+                                "pharmacol:2500mg"};
+        String[] allergies = {"peanut"};
+        MedicalRecord medicalRecord = new MedicalRecord("John",
+                                                        "Boyd",
+                                                        LocalDate.of(1984, 3, 6),
+                                                        medications,
+                                                        allergies);
+        // WHEN calling update()
+        MedicalRecord updatedMedicalRecord = jSonMedicalRecordRepository.update(medicalRecord);
+        //THEN
+        assertThat(updatedMedicalRecord.getMedications()).isEqualTo(medications);
+        assertThat(updatedMedicalRecord.getAllergies()).isEqualTo(allergies);
+    }
+
+    @Test
+    void update_shouldThrowException_whenDoesNotExist() throws ResourceNotFoundException {
+        //GIVEN a medical record which does not exist in the test data source
+        String        firstName    = "Brian";
+        String        lastName     = "Stelzer";
+        MedicalRecord brianStelzer = new MedicalRecord();
+        brianStelzer.setFirstName(firstName);
+        brianStelzer.setLastName(lastName);
+        Optional<MedicalRecord> nonExistingMedicalRecord = jSonMedicalRecordRepository.findByName(firstName, lastName);
+        // make sure the person does not exist before running check
+        assertThat(nonExistingMedicalRecord).isEmpty();
+
+        // WHEN calling update()
+        // THEN there must be an exception thrown
+        assertThrows(ResourceNotFoundException.class, () -> jSonMedicalRecordRepository.update(brianStelzer));
     }
 }

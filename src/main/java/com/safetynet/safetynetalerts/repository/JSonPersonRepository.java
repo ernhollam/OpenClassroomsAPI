@@ -20,7 +20,7 @@ import java.util.Optional;
 @Slf4j
 @Repository
 @Data
-public class JSonPersonRepository implements PersonRepository {
+public class JSonPersonRepository implements IPersonRepository {
 
     private final JSonRepository jSonRepository;
     private final ObjectMapper   personMapper = new ObjectMapper();

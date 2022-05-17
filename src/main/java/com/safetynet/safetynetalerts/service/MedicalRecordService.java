@@ -1,7 +1,7 @@
 package com.safetynet.safetynetalerts.service;
 
 import com.safetynet.safetynetalerts.model.MedicalRecord;
-import com.safetynet.safetynetalerts.repository.MedicalRecordRepository;
+import com.safetynet.safetynetalerts.repository.IMedicalRecordRepository;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,13 +10,13 @@ import java.util.Optional;
 
 @Data
 @Service
-public class MedicalRecordService {
+public class MedicalRecordService implements IMedicalRecordService {
 
     /**
-     * Instance of MedicalRecordRepository.
+     * Instance of IMedicalRecordRepository.
      */
     @Autowired
-    private MedicalRecordRepository medicalRecordRepository;
+    private IMedicalRecordRepository IMedicalRecordRepository;
 
     /**
      * Get medicalRecord.
@@ -26,8 +26,9 @@ public class MedicalRecordService {
      *
      * @return MedicalRecord a medicalRecord if not empty
      */
+    @Override
     public Optional<MedicalRecord> getMedicalRecordByName(final String firstName, final String lastName) {
-        return medicalRecordRepository.findByName(firstName, lastName);
+        return IMedicalRecordRepository.findByName(firstName, lastName);
     }
 
     /**
@@ -35,8 +36,9 @@ public class MedicalRecordService {
      *
      * @return an iterable of MedicalRecords
      */
+    @Override
     public Iterable<MedicalRecord> getMedicalRecords() {
-        return medicalRecordRepository.findAll();
+        return IMedicalRecordRepository.findAll();
     }
 
     /**
@@ -45,8 +47,9 @@ public class MedicalRecordService {
      * @param firstName Person's first name in medical record to delete
      * @param lastName  Person's last name in medical record to delete
      */
+    @Override
     public void deleteMedicalRecord(final String firstName, final String lastName) throws Exception {
-        medicalRecordRepository.deleteByName(firstName, lastName);
+        IMedicalRecordRepository.deleteByName(firstName, lastName);
     }
 
     /**
@@ -56,7 +59,18 @@ public class MedicalRecordService {
      *
      * @return MedicalRecord
      */
+    @Override
     public MedicalRecord saveMedicalRecord(final MedicalRecord medicalRecord) throws Exception {
-        return medicalRecordRepository.save(medicalRecord);
+        return IMedicalRecordRepository.save(medicalRecord);
+    }
+
+    /**
+     * Update medical record with given name.
+     *
+     * @param medicalRecord Person with medical record to update
+     */
+    @Override
+    public MedicalRecord updateMedicalRecord(final MedicalRecord medicalRecord) throws Exception {
+        return IMedicalRecordRepository.update(medicalRecord);
     }
 }

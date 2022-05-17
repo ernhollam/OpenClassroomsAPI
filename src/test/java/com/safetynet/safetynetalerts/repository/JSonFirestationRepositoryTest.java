@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -30,8 +31,8 @@ class JSonFirestationRepositoryTest {
     /**
      * Class under test
      */
-@Autowired
-private JSonFirestationRepository jSonFirestationRepository;
+    @Autowired
+    private JSonFirestationRepository jSonFirestationRepository;
 
     /**
      * Property data source.
@@ -78,28 +79,28 @@ private JSonFirestationRepository jSonFirestationRepository;
     @Test
     void save_shouldAddNewFirestationInFile() throws Exception {
         //GIVEN a firestation with complete data to add to the list
-        String address = "644 Gershwin Cir";
-        int stationNumber = 1;
-        Firestation firestation = new Firestation(address, stationNumber);
+        String      address       = "644 Gershwin Cir";
+        int         stationNumber = 1;
+        Firestation firestation   = new Firestation(address, stationNumber);
 
         //WHEN calling save()
         jSonFirestationRepository.save(firestation);
 
         //THEN
         final JsonNode firestationsNode = jSonFirestationRepository.getJSonRepository().getNode("firestations");
-        List<Firestation> actualPeople =  mapper.
+        List<Firestation> actualPeople = mapper.
                 convertValue(firestationsNode,
                              new TypeReference<>() {
                              });
-        int          result       = actualPeople.size();
+        int result = actualPeople.size();
         assertThat(result).isEqualTo(nbFirestationsBeforeAnyAction + 1);
     }
 
     @Test
     void save_shouldSave_firestationWithCompleteData() throws Exception {
         //GIVEN a firestation with complete data to add to the list
-        String address = "644 Gershwin Cir";
-        int station = 1;
+        String      address     = "644 Gershwin Cir";
+        int         station     = 1;
         Firestation firestation = new Firestation(address, station);
 
         //WHEN calling save()
@@ -116,7 +117,7 @@ private JSonFirestationRepository jSonFirestationRepository;
     @Test
     void deleteByStationNumber_shouldDelete_SpecifiedFirestationFromFile() throws Exception {
         //GIVEN an existing firestation in the test data source
-        int station = 4;
+        int                   station             = 4;
         Optional<Firestation> existingFirestation = jSonFirestationRepository.findByStationNumber(station);
         assertThat(existingFirestation).isPresent();
 
@@ -129,9 +130,9 @@ private JSonFirestationRepository jSonFirestationRepository;
     }
 
     @Test
-    void deleteByName_shouldNotDelete_WhenFirestationDoesNotExist() throws Exception {
+    void deleteByName_shouldNotDelete_WhenFirestationDoesNotExist() {
         //GIVEN an existing person in the test data source
-        int station = 1;
+        int                   station                = 1;
         Optional<Firestation> nonExistingFirestation = jSonFirestationRepository.findByStationNumber(station);
         assertThat(nonExistingFirestation).isEmpty();
 
@@ -143,7 +144,7 @@ private JSonFirestationRepository jSonFirestationRepository;
     @Test
     void findByStationNumber_shouldFindOneFirestation_whenFirestationExists() {
         //GIVEN an existing firestation in the test data source
-        int station  = 2;
+        int station = 2;
         //WHEN calling findByStationNumber()
         Optional<Firestation> foundFirestation = jSonFirestationRepository.findByStationNumber(station);
         //THEN there must be six firestations in the test file
@@ -158,5 +159,28 @@ private JSonFirestationRepository jSonFirestationRepository;
         Optional<Firestation> foundFirestation = jSonFirestationRepository.findByStationNumber(station);
         //THEN there must be six firestations in the test file
         assertThat(foundFirestation).isEmpty();
+    }
+
+    @Test
+    void update_shouldReturn_updatedMedicalRecord_whenExists() throws Exception {
+        // GIVEN existing firestation with new address
+        int         stationNumber = 3;
+        String      address       = "834 Binoc Ave";
+        Firestation firestation   = new Firestation(address, stationNumber);
+        // WHEN calling update()
+        Firestation updatedFirestation = jSonFirestationRepository.update(firestation);
+        //THEN
+        assertThat(updatedFirestation.getStation()).isEqualTo(stationNumber);
+        assertThat(updatedFirestation.getAddress()).isEqualTo(address);
+    }
+
+    @Test
+    void update_shouldThrowException_whenDoesNotExist() throws ResourceNotFoundException {
+        //GIVEN a firestation which does not exist
+        Firestation firestation = new Firestation("dummy address", 1);
+
+        // WHEN calling update()
+        // THEN there must be an exception thrown
+        assertThrows(ResourceNotFoundException.class, () -> jSonFirestationRepository.update(firestation));
     }
 }

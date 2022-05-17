@@ -1,7 +1,7 @@
 package com.safetynet.safetynetalerts.service;
 
 import com.safetynet.safetynetalerts.model.Firestation;
-import com.safetynet.safetynetalerts.repository.FirestationRepository;
+import com.safetynet.safetynetalerts.repository.IFirestationRepository;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,13 +10,13 @@ import java.util.Optional;
 
 @Data
 @Service
-public class FirestationService {
+public class FirestationService implements IFirestationService {
 
     /**
-     * Instance of FirestationRepository.
+     * Instance of IFirestationRepository.
      */
     @Autowired
-    private FirestationRepository firestationRepository;
+    private IFirestationRepository IFirestationRepository;
 
     /**
      * Get firestation.
@@ -25,8 +25,9 @@ public class FirestationService {
      *
      * @return Firestation a firestation if not empty
      */
+    @Override
     public Optional<Firestation> getFirestation(final int id) {
-        return firestationRepository.findByStationNumber(id);
+        return IFirestationRepository.findByStationNumber(id);
     }
 
     /**
@@ -34,8 +35,9 @@ public class FirestationService {
      *
      * @return an iterable of Firestations
      */
+    @Override
     public Iterable<Firestation> getFirestations() {
-        return firestationRepository.findAll();
+        return IFirestationRepository.findAll();
     }
 
     /**
@@ -43,8 +45,9 @@ public class FirestationService {
      *
      * @param id ID of firestation to delete
      */
+    @Override
     public void deleteFirestation(final int id) throws Exception {
-        firestationRepository.deleteByStationNumber(id);
+        IFirestationRepository.deleteByStationNumber(id);
     }
 
     /**
@@ -54,7 +57,18 @@ public class FirestationService {
      *
      * @return Firestation
      */
+    @Override
     public Firestation saveFirestation(final Firestation firestation) throws Exception {
-        return firestationRepository.save(firestation);
+        return IFirestationRepository.save(firestation);
+    }
+
+    /**
+     * Updates firestation with given station number.
+     *
+     * @param firestation Firestation to update
+     */
+    @Override
+    public Firestation updateFirestation(final Firestation firestation) throws Exception {
+        return IFirestationRepository.update(firestation);
     }
 }

@@ -4,7 +4,7 @@ import com.safetynet.safetynetalerts.model.Firestation;
 
 import java.util.Optional;
 
-public interface FirestationRepository {
+public interface IFirestationRepository {
 
     /**
      * Save firestation.
@@ -14,6 +14,13 @@ public interface FirestationRepository {
      * @return firestation saved
      */
     Firestation save(Firestation firestation) throws Exception;
+
+    /**
+     * Updates firestation with given station number.
+     *
+     * @param firestation ID of station du update
+     */
+    Firestation update(Firestation firestation) throws Exception;
 
     /**
      * Delete firestation with specified id.
