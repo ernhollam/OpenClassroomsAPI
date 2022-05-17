@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.safetynet.safetynetalerts.exceptions.ResourceAlreadyExistsException;
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -53,27 +55,38 @@ public class JSonPersonRepository implements PersonRepository {
     /**
      * Save person into JSon file.
      *
-     * @param person Person to save
+     * @param personToSave Person to save
      *
      * @return person saved
      */
-    public Person save(Person person) throws Exception {
-        // Get useful nodes
-        JsonNode rootNode    = jSonRepository.getNode("root");
-        JsonNode personsNode = jSonRepository.getNode("persons");
-        // Transform Person object into Json node and add to persons node
-        JsonNode newPersonAsNode = personMapper.valueToTree(person);
-        ((ArrayNode) personsNode).add(newPersonAsNode);
-        // Overwrite root node with new persons node
-        updatePersonsNode((ObjectNode) rootNode, personsNode);
-        //Write data
-        boolean success = jSonRepository.writeJsonFile(rootNode);
-        if (success) {
-            log.debug("Saved new person {} {}.", person.getFirstName(), person.getLastName());
-            return person;
+    public Person save(Person personToSave) throws Exception {
+        String           firstName          = personToSave.getFirstName();
+        String           lastName           = personToSave.getLastName();
+        Optional<Person> personInDataSource = findByName(firstName, lastName);
+        if (personInDataSource.isEmpty()) {
+            // Get useful nodes
+            JsonNode rootNode    = jSonRepository.getNode("root");
+            JsonNode personsNode = jSonRepository.getNode("persons");
+            // Transform Person object into Json node and add to persons node
+            JsonNode newPersonAsNode = personMapper.valueToTree(personToSave);
+            ((ArrayNode) personsNode).add(newPersonAsNode);
+            // Overwrite root node with new persons node
+            updatePersonsNode((ObjectNode) rootNode, personsNode);
+            //Write data
+            boolean success = jSonRepository.writeJsonFile(rootNode);
+            if (success) {
+                log.debug("Saved new person {} {}.", firstName, lastName);
+                return personToSave;
+            } else {
+                String saveFailedErrorMessage = "Failed to save person: " + firstName + " " + lastName + ".";
+                log.error(saveFailedErrorMessage);
+                throw new Exception(saveFailedErrorMessage);
+            }
         } else {
-            log.error("Failed to save new person {} {}.", person.getFirstName(), person.getLastName());
-            throw new Exception("Failed to save person.");
+            String alreadyExistsErrorMessage = "The person (" + firstName + " " + lastName + ") you are trying to " +
+                                               "save already exists.";
+            log.error(alreadyExistsErrorMessage);
+            throw new ResourceAlreadyExistsException(alreadyExistsErrorMessage);
         }
     }
 
@@ -106,11 +119,59 @@ public class JSonPersonRepository implements PersonRepository {
                 foundPerson = Optional.of(person);
                 log.debug("Found person: {}", foundPerson);
                 break;
-            } else {
-                log.warn("Person {} {} was not found.", firstName, lastName);
             }
         }
         return foundPerson;
+    }
+
+    /**
+     * Updates a person.
+     *
+     * @param personToUpdate Person to update.
+     *
+     * @throws Exception thrown when update failed.
+     */
+    @Override
+    public Person update(Person personToUpdate) throws Exception {
+        String           firstName          = personToUpdate.getFirstName();
+        String           lastName           = personToUpdate.getLastName();
+        Optional<Person> personInDataSource = findByName(firstName, lastName);
+
+        if (personInDataSource.isEmpty()) {
+            String notFoundMessage = "Person " + firstName + " " + lastName + " does not exist.";
+            log.error(notFoundMessage);
+            throw new ResourceNotFoundException(notFoundMessage);
+        } else {
+            Person personBeforeUpdate = personInDataSource.get();
+
+            //TODO demander s'il faut mettre à jour tout le temps ou seulement si le champ est différent
+            String address = personToUpdate.getAddress();
+            if (address != null && !address.equalsIgnoreCase(personBeforeUpdate.getAddress())) {
+                personBeforeUpdate.setAddress(address);
+            }
+
+            String city = personToUpdate.getCity();
+            if (city != null && !city.equalsIgnoreCase(personBeforeUpdate.getCity())) {
+                personBeforeUpdate.setCity(city);
+            }
+
+            int zip = personToUpdate.getZip();
+            if (zip != 0 && zip != personBeforeUpdate.getZip()) {
+                personBeforeUpdate.setZip(zip);
+            }
+
+            String phone = personToUpdate.getPhone();
+            if (phone != null && !phone.equalsIgnoreCase(personBeforeUpdate.getPhone())) {
+                personBeforeUpdate.setPhone(phone);
+            }
+
+            String mail = personToUpdate.getEmail();
+            if (mail != null && !mail.equalsIgnoreCase(personBeforeUpdate.getEmail())) {
+                personBeforeUpdate.setEmail(mail);
+            }
+
+            return save(personBeforeUpdate);
+        }
     }
 
     /**
@@ -146,10 +207,9 @@ public class JSonPersonRepository implements PersonRepository {
                 throw new Exception("Failed to update JSON file after deletion of person " + firstName + " " + lastName + ".");
             }
         } else {
-            log.error("Person {} {} does not exist in JSON file. ",
-                      firstName, lastName);
-            throw new Exception("The person (" + firstName + " " + lastName + ") you are trying to delete does not " +
-                                "exist in JSON file.");
+            String notFoundMessage = "Person " + firstName + " " + lastName + " does not exist.";
+            log.error(notFoundMessage);
+            throw new ResourceNotFoundException(notFoundMessage);
         }
     }
 

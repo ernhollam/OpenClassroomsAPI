@@ -18,6 +18,10 @@ public class PersonService {
     @Autowired
     private PersonRepository personRepository;
 
+    public PersonService(PersonRepository personRepository) {
+        this.personRepository = personRepository;
+    }
+
     /**
      * Get person.
      *
@@ -47,6 +51,15 @@ public class PersonService {
      */
     public void deletePerson(final String firstName, final String lastName) throws Exception {
         personRepository.deleteByName(firstName, lastName);
+    }
+
+    /**
+     * Delete person with given name.
+     *
+     * @param person Person to update
+     */
+    public Person updatePerson(final Person person) throws Exception {
+        return personRepository.update(person);
     }
 
     /**

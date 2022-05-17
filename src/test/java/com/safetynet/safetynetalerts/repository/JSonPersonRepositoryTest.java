@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -88,11 +89,11 @@ public class JSonPersonRepositoryTest {
 
         //THEN
         final JsonNode personsNode = jsonPersonRepository.getJSonRepository().getNode("persons");
-        List<Person> actualPeople =  mapper.
+        List<Person> actualPeople = mapper.
                 convertValue(personsNode,
                              new TypeReference<>() {
                              });
-        int          result       = actualPeople.size();
+        int result = actualPeople.size();
         assertThat(result).isEqualTo(nbPeopleBeforeAnyAction + 1);
     }
 
@@ -124,8 +125,8 @@ public class JSonPersonRepositoryTest {
     @Test
     void deleteByName_shouldDelete_SpecifiedPersonFromFile_whenPersonExists() throws Exception {
         //GIVEN an existing person in the test data source
-        String firstName = "Jonanathan";
-        String lastName  = "Marrack";
+        String           firstName      = "Jonanathan";
+        String           lastName       = "Marrack";
         Optional<Person> existingPerson = jsonPersonRepository.findByName(firstName, lastName);
         assertThat(existingPerson).isPresent();
 
@@ -138,16 +139,16 @@ public class JSonPersonRepositoryTest {
     }
 
     @Test
-    void deleteByName_shouldNotDelete_WhenPersonDoesNotExist() throws Exception {
+    void deleteByName_shouldNotDelete_WhenPersonDoesNotExist() {
         //GIVEN a person who does not exist in the test data source
-        String firstName = "Brian";
-        String lastName  = "Stelzer";
+        String           firstName         = "Brian";
+        String           lastName          = "Stelzer";
         Optional<Person> nonExistingPerson = jsonPersonRepository.findByName(firstName, lastName);
         assertThat(nonExistingPerson).isEmpty();
 
         // WHEN calling deleteByName()
         // THEN there must be an exception thrown
-        assertThrows(Exception.class, () -> jsonPersonRepository.deleteByName(firstName, lastName));
+        assertThrows(ResourceNotFoundException.class, () -> jsonPersonRepository.deleteByName(firstName, lastName));
     }
 
     @Test
@@ -171,4 +172,41 @@ public class JSonPersonRepositoryTest {
         //THEN there must be six persons in the test file
         assertThat(foundPerson).isEmpty();
     }
+
+    @Test
+    void update_shouldReturn_updatedPerson_whenPersonExists() throws Exception {
+        // GIVEN existing  person John Boyd with different address and different phone number
+        String newAddress = "112 Steppes Pl";
+        String newPhone   = "841-874-9888";
+        Person johnBoyd = new Person("John",
+                                     "Boyd",
+                                     newAddress,
+                                     "Culver",
+                                     97451,
+                                     newPhone,
+                                     "jaboyd@email.com");
+        // WHEN calling update()
+        Person updatedPerson = jsonPersonRepository.update(johnBoyd);
+        //THEN
+        assertThat(updatedPerson.getAddress()).isEqualTo(newAddress);
+        assertThat(updatedPerson.getPhone()).isEqualTo(newPhone);
+    }
+
+    @Test
+    void update_shouldThrowException_whenPersonDoesNotExist() throws ResourceNotFoundException {
+        //GIVEN a person who does not exist in the test data source
+        String firstName    = "Brian";
+        String lastName     = "Stelzer";
+        Person brianStelzer = new Person();
+        brianStelzer.setFirstName(firstName);
+        brianStelzer.setLastName(lastName);
+        Optional<Person> nonExistingPerson = jsonPersonRepository.findByName(firstName, lastName);
+        // make sure the person does not exist before running check
+        assertThat(nonExistingPerson).isEmpty();
+
+        // WHEN calling update()
+        // THEN there must be an exception thrown
+        assertThrows(ResourceNotFoundException.class, () -> jsonPersonRepository.update(brianStelzer));
+    }
+
 }

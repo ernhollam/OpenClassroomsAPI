@@ -31,7 +31,7 @@ public interface PersonRepository {
     Iterable<Person> findAll();
 
     /**
-     * Find person with specified email.
+     * Finds person with specified email.
      *
      * @param firstName First name of person to find
      * @param lastName  Last name of person to find
@@ -40,4 +40,12 @@ public interface PersonRepository {
      */
     Optional<Person> findByName(String firstName, String lastName);
 
+    /**
+     * Updates a person.
+     *
+     * @param person Person to update.
+     *
+     * @throws Exception thrown when update failed.
+     */
+    Person update(Person person) throws Exception;
 }
