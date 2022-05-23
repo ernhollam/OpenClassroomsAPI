@@ -2,6 +2,7 @@ package com.safetynet.safetynetalerts.repository;
 
 import com.safetynet.safetynetalerts.model.Firestation;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface FirestationRepository {
@@ -28,7 +29,7 @@ public interface FirestationRepository {
      *
      * @return list of firestations.
      */
-    Iterable<Firestation> findAll();
+    List<Firestation> findAll();
 
     /**
      * Find firestation with specified ID.

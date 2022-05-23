@@ -17,12 +17,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-class MedicalRecordServiceTest {
+class JSonMedicalRecordServiceTest {
     /**
      * Class under test.
      */
     @Autowired
-    private MedicalRecordService medicalRecordService;
+    private JSonMedicalRecordService JSonMedicalRecordService;
 
     @MockBean
     private JSonMedicalRecordRepository jSonMedicalRecordRepository;
@@ -44,7 +44,7 @@ class MedicalRecordServiceTest {
         when(jSonMedicalRecordRepository.save(any(MedicalRecord.class))).thenReturn(medicalRecord);
 
         // WHEN calling update()
-        MedicalRecord updatedMedicalRecord = medicalRecordService.updateMedicalRecord(medicalRecord);
+        MedicalRecord updatedMedicalRecord = JSonMedicalRecordService.updateMedicalRecord(medicalRecord);
 
         //THEN
         assertThat(updatedMedicalRecord.getMedications()).isEqualTo(medications);
@@ -60,13 +60,13 @@ class MedicalRecordServiceTest {
         brianStelzer.setFirstName(firstName);
         brianStelzer.setLastName(lastName);
         when(jSonMedicalRecordRepository.findByName(firstName, lastName)).thenReturn(Optional.empty());
-        Optional<MedicalRecord> nonExistingMedicalRecord = medicalRecordService.getMedicalRecordByName(firstName,
-                                                                                                       lastName);
+        Optional<MedicalRecord> nonExistingMedicalRecord = JSonMedicalRecordService.getMedicalRecordByName(firstName,
+                                                                                                           lastName);
         // make sure the person does not exist before running check
         assertThat(nonExistingMedicalRecord).isEmpty();
 
         // WHEN calling update()
         // THEN there must be an exception thrown
-        assertThrows(ResourceNotFoundException.class, () -> medicalRecordService.updateMedicalRecord(brianStelzer));
+        assertThrows(ResourceNotFoundException.class, () -> JSonMedicalRecordService.updateMedicalRecord(brianStelzer));
     }
 }

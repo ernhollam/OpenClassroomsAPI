@@ -16,12 +16,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-class PersonServiceTest {
+class JSonPersonServiceTest {
     /**
      * Class under test
      */
     @Autowired
-    private PersonService personService;
+    private JSonPersonService JSonPersonService;
 
     @MockBean
     private JSonPersonRepository jSonPersonRepository;
@@ -48,7 +48,7 @@ class PersonServiceTest {
         when(jSonPersonRepository.save(any(Person.class))).thenReturn(johnBoyd);
 
         // WHEN calling updatePerson()
-        Person updatedPerson = personService.updatePerson(johnBoyd);
+        Person updatedPerson = JSonPersonService.updatePerson(johnBoyd);
 
         //THEN
         assertThat(updatedPerson.getAddress()).isEqualTo(newAddress);
@@ -68,12 +68,12 @@ class PersonServiceTest {
         brianStelzer.setFirstName(firstName);
         brianStelzer.setLastName(lastName);
         when(jSonPersonRepository.findByName(firstName, lastName)).thenReturn(Optional.empty());
-        Optional<Person> nonExistingPerson = personService.getPersonByName(firstName, lastName);
+        Optional<Person> nonExistingPerson = JSonPersonService.getPersonByName(firstName, lastName);
         // make sure the person does not exist before running check
         assertThat(nonExistingPerson).isEmpty();
 
         // WHEN calling update()
         // THEN there must be an exception thrown
-        assertThrows(ResourceNotFoundException.class, () -> personService.updatePerson(brianStelzer));
+        assertThrows(ResourceNotFoundException.class, () -> JSonPersonService.updatePerson(brianStelzer));
     }
 }

@@ -2,7 +2,7 @@ package com.safetynet.safetynetalerts.controller;
 
 import com.safetynet.safetynetalerts.model.Person;
 import com.safetynet.safetynetalerts.repository.JSonRepository;
-import com.safetynet.safetynetalerts.service.PersonService;
+import com.safetynet.safetynetalerts.service.JSonPersonService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -30,9 +30,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(PersonController.class) // instantiate PersonController only for this test
 public class PersonControllerTest {
     @Autowired
-    private MockMvc       mockMvc;
+    private MockMvc           mockMvc;
     @MockBean
-    private PersonService personService;
+    private JSonPersonService JSonPersonService;
 
     private List<Person> listPersons;
     private Person       johnBoyd;
@@ -59,7 +59,7 @@ public class PersonControllerTest {
 
     @Test
     public void getPersons_shouldReturn_ListOfAllPeople() throws Exception {
-        when(personService.getPersons()).thenReturn(listPersons);
+        when(JSonPersonService.getPersons()).thenReturn(listPersons);
         mockMvc.perform(get("/person"))
                .andDo(print())
                .andExpect(status().isOk())
@@ -70,7 +70,7 @@ public class PersonControllerTest {
 
     @Test
     public void getPersons_shouldReturn_NoContentCode() throws Exception {
-        when(personService.getPersons()).thenReturn(Collections.emptyList());
+        when(JSonPersonService.getPersons()).thenReturn(Collections.emptyList());
         mockMvc.perform(get("/person"))
                .andDo(print())
                .andExpect(status().isNoContent())
@@ -81,7 +81,7 @@ public class PersonControllerTest {
     public void getPerson_shouldReturn_OnePerson_WhenExistsInFile() throws Exception {
         String firstName = feliciaBoyd.getFirstName();
         String lastName  = feliciaBoyd.getLastName();
-        when(personService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.of(feliciaBoyd));
+        when(JSonPersonService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.of(feliciaBoyd));
 
 
         mockMvc.perform(get("/person")
@@ -102,7 +102,7 @@ public class PersonControllerTest {
     public void getPerson_shouldThrow_ResourceNotFoundException_whenPersonDoesNotExist() throws Exception {
         String firstName = "Shawna";
         String lastName  = "Stelzer";
-        when(personService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.empty());
+        when(JSonPersonService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.empty());
 
 
         mockMvc.perform(get("/person")
@@ -114,7 +114,7 @@ public class PersonControllerTest {
 
     @Test
     public void getPerson_shouldReturn_BadRequest_WithFirstNameOnly() throws Exception {
-        when(personService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.empty());
+        when(JSonPersonService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.empty());
 
 
         mockMvc.perform(get("/person")
@@ -125,7 +125,7 @@ public class PersonControllerTest {
 
     @Test
     public void getPerson_shouldReturn_BadRequest_WithLastNameOnly() throws Exception {
-        when(personService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.empty());
+        when(JSonPersonService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.empty());
 
 
         mockMvc.perform(get("/person")
@@ -150,7 +150,7 @@ public class PersonControllerTest {
                                    zip,
                                    phone,
                                    email);
-        when(personService.savePerson(person)).thenReturn(person);
+        when(JSonPersonService.savePerson(person)).thenReturn(person);
 
 
         mockMvc.perform(post("/person")

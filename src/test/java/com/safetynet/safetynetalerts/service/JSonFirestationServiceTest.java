@@ -16,12 +16,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-class FirestationServiceTest {
+class JSonFirestationServiceTest {
     /**
      * Class under test.
      */
     @Autowired
-    private FirestationService firestationService;
+    private JSonFirestationService JSonFirestationService;
 
     @MockBean
     private JSonFirestationRepository jSonFirestationRepository;
@@ -36,7 +36,7 @@ class FirestationServiceTest {
         when(jSonFirestationRepository.save(any(Firestation.class))).thenReturn(firestation);
 
         // WHEN calling update()
-        Firestation updatedFirestation = firestationService.updateFirestation(firestation);
+        Firestation updatedFirestation = JSonFirestationService.updateFirestation(firestation);
 
         //THEN
         assertThat(updatedFirestation.getStation()).isEqualTo(stationNumber);
@@ -50,6 +50,6 @@ class FirestationServiceTest {
 
         // WHEN calling update()
         // THEN there must be an exception thrown
-        assertThrows(ResourceNotFoundException.class, () -> firestationService.updateFirestation(firestation));
+        assertThrows(ResourceNotFoundException.class, () -> JSonFirestationService.updateFirestation(firestation));
     }
 }
