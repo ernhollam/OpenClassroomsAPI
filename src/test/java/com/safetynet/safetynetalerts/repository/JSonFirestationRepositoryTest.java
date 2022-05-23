@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -161,26 +160,4 @@ class JSonFirestationRepositoryTest {
         assertThat(foundFirestation).isEmpty();
     }
 
-    @Test
-    void update_shouldReturn_updatedMedicalRecord_whenExists() throws Exception {
-        // GIVEN existing firestation with new address
-        int         stationNumber = 3;
-        String      address       = "834 Binoc Ave";
-        Firestation firestation   = new Firestation(address, stationNumber);
-        // WHEN calling update()
-        Firestation updatedFirestation = jSonFirestationRepository.update(firestation);
-        //THEN
-        assertThat(updatedFirestation.getStation()).isEqualTo(stationNumber);
-        assertThat(updatedFirestation.getAddress()).isEqualTo(address);
-    }
-
-    @Test
-    void update_shouldThrowException_whenDoesNotExist() throws ResourceNotFoundException {
-        //GIVEN a firestation which does not exist
-        Firestation firestation = new Firestation("dummy address", 1);
-
-        // WHEN calling update()
-        // THEN there must be an exception thrown
-        assertThrows(ResourceNotFoundException.class, () -> jSonFirestationRepository.update(firestation));
-    }
 }

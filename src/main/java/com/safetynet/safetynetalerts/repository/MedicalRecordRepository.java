@@ -4,11 +4,12 @@ import com.safetynet.safetynetalerts.model.MedicalRecord;
 
 import java.util.Optional;
 
-public interface IMedicalRecordRepository {
+public interface MedicalRecordRepository {
     /**
      * Save medical record.
      *
-     * @param medicalRecord Medical record to save
+     * @param medicalRecord
+     *         Medical record to save
      *
      * @return medical record saved
      */
@@ -38,15 +39,4 @@ public interface IMedicalRecordRepository {
      * @return Found medical record
      */
     Optional<MedicalRecord> findByName(String firstName, String lastName);
-
-    /**
-     * Updates the medical record of specified person
-     *
-     * @param medicalRecord Medical record to update
-     *
-     * @return updated medical record
-     *
-     * @throws Exception thrown when update failed.
-     */
-    MedicalRecord update(MedicalRecord medicalRecord) throws Exception;
 }

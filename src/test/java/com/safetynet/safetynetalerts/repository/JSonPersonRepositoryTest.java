@@ -187,46 +187,4 @@ public class JSonPersonRepositoryTest {
         assertThat(foundPerson).isEmpty();
     }
 
-    @Test
-    void update_shouldReturn_updatedPerson_whenPersonExists() throws Exception {
-        // GIVEN existing  person John Boyd with different address and different phone number
-        String newAddress = "112 Steppes Pl";
-        String newPhone   = "841-874-9888";
-        String newCity    = "Figeac";
-        int    newZip     = 46100;
-        String newEmail   = "johnboyd@email.com";
-        Person johnBoyd = new Person("John",
-                                     "Boyd",
-                                     newAddress,
-                                     newCity,
-                                     newZip,
-                                     newPhone,
-                                     newEmail);
-        // WHEN calling update()
-        Person updatedPerson = jsonPersonRepository.update(johnBoyd);
-        //THEN
-        assertThat(updatedPerson.getAddress()).isEqualTo(newAddress);
-        assertThat(updatedPerson.getCity()).isEqualTo(newCity);
-        assertThat(updatedPerson.getZip()).isEqualTo(newZip);
-        assertThat(updatedPerson.getPhone()).isEqualTo(newPhone);
-        assertThat(updatedPerson.getEmail()).isEqualTo(newEmail);
-    }
-
-    @Test
-    void update_shouldThrowException_whenPersonDoesNotExist() throws ResourceNotFoundException {
-        //GIVEN a person who does not exist in the test data source
-        String firstName    = "Brian";
-        String lastName     = "Stelzer";
-        Person brianStelzer = new Person();
-        brianStelzer.setFirstName(firstName);
-        brianStelzer.setLastName(lastName);
-        Optional<Person> nonExistingPerson = jsonPersonRepository.findByName(firstName, lastName);
-        // make sure the person does not exist before running check
-        assertThat(nonExistingPerson).isEmpty();
-
-        // WHEN calling update()
-        // THEN there must be an exception thrown
-        assertThrows(ResourceNotFoundException.class, () -> jsonPersonRepository.update(brianStelzer));
-    }
-
 }

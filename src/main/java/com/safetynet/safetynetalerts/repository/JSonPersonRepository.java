@@ -19,7 +19,7 @@ import java.util.Optional;
 @Slf4j
 @Repository
 @Data
-public class JSonPersonRepository implements IPersonRepository {
+public class JSonPersonRepository implements PersonRepository {
 
     private final JSonRepository jSonRepository;
     private final ObjectMapper   personMapper = new ObjectMapper();
@@ -118,57 +118,6 @@ public class JSonPersonRepository implements IPersonRepository {
         return foundPerson;
     }
 
-    /**
-     * Updates a person.
-     *
-     * @param personToUpdate
-     *         Person to update.
-     *
-     * @throws Exception
-     *         thrown when update failed.
-     */
-    @Override
-    public Person update(Person personToUpdate) throws Exception {
-        String           firstName          = personToUpdate.getFirstName();
-        String           lastName           = personToUpdate.getLastName();
-        Optional<Person> personInDataSource = findByName(firstName, lastName);
-
-        if (personInDataSource.isEmpty()) {
-            String notFoundMessage = "Person " + firstName + " " + lastName + " does not exist.";
-            log.error(notFoundMessage);
-            throw new ResourceNotFoundException(notFoundMessage);
-        } else {
-            Person personBeforeUpdate = personInDataSource.get();
-
-            //TODO demander s'il faut mettre à jour tout le temps ou seulement si le champ est différent
-            String address = personToUpdate.getAddress();
-            if (address != null && !address.equalsIgnoreCase(personBeforeUpdate.getAddress())) {
-                personBeforeUpdate.setAddress(address);
-            }
-
-            String city = personToUpdate.getCity();
-            if (city != null && !city.equalsIgnoreCase(personBeforeUpdate.getCity())) {
-                personBeforeUpdate.setCity(city);
-            }
-
-            int zip = personToUpdate.getZip();
-            if (zip != 0 && zip != personBeforeUpdate.getZip()) {
-                personBeforeUpdate.setZip(zip);
-            }
-
-            String phone = personToUpdate.getPhone();
-            if (phone != null && !phone.equalsIgnoreCase(personBeforeUpdate.getPhone())) {
-                personBeforeUpdate.setPhone(phone);
-            }
-
-            String mail = personToUpdate.getEmail();
-            if (mail != null && !mail.equalsIgnoreCase(personBeforeUpdate.getEmail())) {
-                personBeforeUpdate.setEmail(mail);
-            }
-
-            return save(personBeforeUpdate);
-        }
-    }
 
     /**
      * Delete person with specified name from JSon file.

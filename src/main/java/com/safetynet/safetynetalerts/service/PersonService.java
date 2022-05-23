@@ -1,38 +1,44 @@
 package com.safetynet.safetynetalerts.service;
 
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
-import com.safetynet.safetynetalerts.repository.IPersonRepository;
+import com.safetynet.safetynetalerts.repository.PersonRepository;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Data
 @Service
+@Slf4j
 public class PersonService implements IPersonService {
 
     /**
-     * Instance of IPersonRepository.
+     * Instance of PersonRepository.
      */
     @Autowired
-    private IPersonRepository IPersonRepository;
+    private PersonRepository personRepository;
 
-    public PersonService(IPersonRepository IPersonRepository) {
-        this.IPersonRepository = IPersonRepository;
+    public PersonService(PersonRepository PersonRepository) {
+        this.personRepository = PersonRepository;
     }
 
     /**
      * Get person.
      *
-     * @param firstName Person's first name
-     * @param lastName  Person's last name
+     * @param firstName
+     *         Person's first name
+     * @param lastName
+     *         Person's last name
      *
      * @return Person a person if not empty
      */
     @Override
     public Optional<Person> getPersonByName(final String firstName, final String lastName) {
-        return IPersonRepository.findByName(firstName, lastName);
+        return personRepository.findByName(firstName, lastName);
     }
 
     /**
@@ -41,8 +47,8 @@ public class PersonService implements IPersonService {
      * @return an iterable of Persons
      */
     @Override
-    public Iterable<Person> getPersons() {
-        return IPersonRepository.findAll();
+    public List<Person> getPersons() {
+        return personRepository.findAll();
     }
 
     /**
@@ -53,7 +59,7 @@ public class PersonService implements IPersonService {
      */
     @Override
     public void deletePerson(final String firstName, final String lastName) throws Exception {
-        IPersonRepository.deleteByName(firstName, lastName);
+        personRepository.deleteByName(firstName, lastName);
     }
 
     /**
@@ -63,7 +69,17 @@ public class PersonService implements IPersonService {
      */
     @Override
     public Person updatePerson(final Person person) throws Exception {
-        return IPersonRepository.update(person);
+        String firstName = person.getFirstName();
+        String lastName  = person.getLastName();
+
+        Optional<Person> personInDataSource = personRepository.findByName(firstName, lastName);
+        if (personInDataSource.isEmpty()) {
+            String notFoundMessage = "Person " + firstName + " " + lastName + " does not exist.";
+            log.error(notFoundMessage);
+            throw new ResourceNotFoundException(notFoundMessage);
+        } else {
+            return personRepository.save(person);
+        }
     }
 
     /**
@@ -75,6 +91,6 @@ public class PersonService implements IPersonService {
      */
     @Override
     public Person savePerson(final Person person) throws Exception {
-        return IPersonRepository.save(person);
+        return personRepository.save(person);
     }
 }

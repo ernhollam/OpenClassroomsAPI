@@ -1,7 +1,8 @@
 package com.safetynet.safetynetalerts.service;
 
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
-import com.safetynet.safetynetalerts.repository.IMedicalRecordRepository;
+import com.safetynet.safetynetalerts.repository.MedicalRecordRepository;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,22 +14,24 @@ import java.util.Optional;
 public class MedicalRecordService implements IMedicalRecordService {
 
     /**
-     * Instance of IMedicalRecordRepository.
+     * Instance of MedicalRecordRepository.
      */
     @Autowired
-    private IMedicalRecordRepository IMedicalRecordRepository;
+    private MedicalRecordRepository medicalRecordRepository;
 
     /**
      * Get medicalRecord.
      *
-     * @param firstName Person's first name in medical record
-     * @param lastName  Person's last name in medical record
+     * @param firstName
+     *         Person's first name in medical record
+     * @param lastName
+     *         Person's last name in medical record
      *
      * @return MedicalRecord a medicalRecord if not empty
      */
     @Override
     public Optional<MedicalRecord> getMedicalRecordByName(final String firstName, final String lastName) {
-        return IMedicalRecordRepository.findByName(firstName, lastName);
+        return medicalRecordRepository.findByName(firstName, lastName);
     }
 
     /**
@@ -38,39 +41,52 @@ public class MedicalRecordService implements IMedicalRecordService {
      */
     @Override
     public Iterable<MedicalRecord> getMedicalRecords() {
-        return IMedicalRecordRepository.findAll();
+        return medicalRecordRepository.findAll();
     }
 
     /**
      * Delete medicalRecord with given id.
      *
-     * @param firstName Person's first name in medical record to delete
-     * @param lastName  Person's last name in medical record to delete
+     * @param firstName
+     *         Person's first name in medical record to delete
+     * @param lastName
+     *         Person's last name in medical record to delete
      */
     @Override
     public void deleteMedicalRecord(final String firstName, final String lastName) throws Exception {
-        IMedicalRecordRepository.deleteByName(firstName, lastName);
+        medicalRecordRepository.deleteByName(firstName, lastName);
     }
 
     /**
      * Save medicalRecord.
      *
-     * @param medicalRecord MedicalRecord to save
+     * @param medicalRecord
+     *         MedicalRecord to save
      *
      * @return MedicalRecord
      */
     @Override
     public MedicalRecord saveMedicalRecord(final MedicalRecord medicalRecord) throws Exception {
-        return IMedicalRecordRepository.save(medicalRecord);
+        return medicalRecordRepository.save(medicalRecord);
     }
 
     /**
      * Update medical record with given name.
      *
-     * @param medicalRecord Person with medical record to update
+     * @param medicalRecord
+     *         Person with medical record to update
      */
     @Override
     public MedicalRecord updateMedicalRecord(final MedicalRecord medicalRecord) throws Exception {
-        return IMedicalRecordRepository.update(medicalRecord);
+        String firstName = medicalRecord.getFirstName();
+        String lastName  = medicalRecord.getLastName();
+
+        Optional<MedicalRecord> medicalRecordInDataSource = medicalRecordRepository.findByName(firstName, lastName);
+        if (medicalRecordInDataSource.isEmpty()) {
+            throw new ResourceNotFoundException("The medical record for " + firstName + " " + lastName + " does not " +
+                                                "exist.");
+        } else {
+            return medicalRecordRepository.save(medicalRecord);
+        }
     }
 }

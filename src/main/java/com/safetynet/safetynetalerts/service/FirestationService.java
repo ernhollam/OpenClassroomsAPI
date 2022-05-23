@@ -1,7 +1,8 @@
 package com.safetynet.safetynetalerts.service;
 
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
-import com.safetynet.safetynetalerts.repository.IFirestationRepository;
+import com.safetynet.safetynetalerts.repository.FirestationRepository;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,10 +14,10 @@ import java.util.Optional;
 public class FirestationService implements IFirestationService {
 
     /**
-     * Instance of IFirestationRepository.
+     * Instance of FirestationRepository.
      */
     @Autowired
-    private IFirestationRepository IFirestationRepository;
+    private FirestationRepository firestationRepository;
 
     /**
      * Get firestation.
@@ -27,7 +28,7 @@ public class FirestationService implements IFirestationService {
      */
     @Override
     public Optional<Firestation> getFirestation(final int id) {
-        return IFirestationRepository.findByStationNumber(id);
+        return firestationRepository.findByStationNumber(id);
     }
 
     /**
@@ -37,7 +38,7 @@ public class FirestationService implements IFirestationService {
      */
     @Override
     public Iterable<Firestation> getFirestations() {
-        return IFirestationRepository.findAll();
+        return firestationRepository.findAll();
     }
 
     /**
@@ -47,7 +48,7 @@ public class FirestationService implements IFirestationService {
      */
     @Override
     public void deleteFirestation(final int id) throws Exception {
-        IFirestationRepository.deleteByStationNumber(id);
+        firestationRepository.deleteByStationNumber(id);
     }
 
     /**
@@ -59,7 +60,7 @@ public class FirestationService implements IFirestationService {
      */
     @Override
     public Firestation saveFirestation(final Firestation firestation) throws Exception {
-        return IFirestationRepository.save(firestation);
+        return firestationRepository.save(firestation);
     }
 
     /**
@@ -69,6 +70,13 @@ public class FirestationService implements IFirestationService {
      */
     @Override
     public Firestation updateFirestation(final Firestation firestation) throws Exception {
-        return IFirestationRepository.update(firestation);
+        int station = firestation.getStation();
+        Optional<Firestation> firestationInDataSource =
+                firestationRepository.findByStationNumber(station);
+        if (firestationInDataSource.isEmpty()) {
+            throw new ResourceNotFoundException("Firestation n°" + station + " does not exist.");
+        } else {
+            return firestationRepository.save(firestation);
+        }
     }
 }

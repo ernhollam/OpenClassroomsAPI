@@ -5,13 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -20,7 +18,7 @@ import java.util.Optional;
 @Repository
 @Slf4j
 @Data
-public class JSonMedicalRecordRepository implements IMedicalRecordRepository {
+public class JSonMedicalRecordRepository implements MedicalRecordRepository {
 
     private final JSonRepository jSonRepository;
     private final ObjectMapper   medRecordMapper;
@@ -84,47 +82,7 @@ public class JSonMedicalRecordRepository implements IMedicalRecordRepository {
     }
 
 
-    /**
-     * Updates the medical record of specified person
-     *
-     * @param medicalRecordToUpdate Medical record to update
-     *
-     * @return updated medical record
-     *
-     * @throws Exception thrown when update failed.
-     */
-    @Override
-    public MedicalRecord update(MedicalRecord medicalRecordToUpdate) throws Exception {
-        String                  firstName                 = medicalRecordToUpdate.getFirstName();
-        String                  lastName                  = medicalRecordToUpdate.getLastName();
-        Optional<MedicalRecord> medicalRecordInDataSource = findByName(firstName, lastName);
 
-        if (medicalRecordInDataSource.isEmpty()) {
-            String notFoundMessage = "MedicalRecord for " + firstName + " " + lastName + " does not exist.";
-            log.error(notFoundMessage);
-            throw new ResourceNotFoundException(notFoundMessage);
-        } else {
-            MedicalRecord medicalRecordToBeUpdated = medicalRecordInDataSource.get();
-
-            //TODO demander s'il faut mettre à jour tout le temps ou seulement si le champ est différent
-            LocalDate birthdate = medicalRecordToUpdate.getBirthdate();
-            if (birthdate != null) {
-                medicalRecordToBeUpdated.setBirthdate(birthdate);
-            }
-
-            String[] medications = medicalRecordToUpdate.getMedications();
-            if (medications != null) {
-                medicalRecordToBeUpdated.setMedications(medications);
-            }
-
-            String[] allergies = medicalRecordToUpdate.getAllergies();
-            if (allergies != null) {
-                medicalRecordToBeUpdated.setAllergies(allergies);
-            }
-
-            return save(medicalRecordToBeUpdated);
-        }
-    }
 
     /**
      * Get list of all medical records in JSON file.

@@ -19,7 +19,7 @@ import java.util.Optional;
 @Repository
 @Data
 @Slf4j
-public class JSonFirestationRepository implements IFirestationRepository {
+public class JSonFirestationRepository implements FirestationRepository {
 
     private final JSonRepository jSonRepository;
     private final ObjectMapper   firestationMapper = new ObjectMapper();
@@ -79,30 +79,6 @@ public class JSonFirestationRepository implements IFirestationRepository {
         }
     }
 
-    /**
-     * Updates firestation with given station number.
-     *
-     * @param firestation ID of station du update
-     */
-    public Firestation update(Firestation firestation) throws Exception {
-        int                   stationNumber           = firestation.getStation();
-        Optional<Firestation> firestationInDataSource = findByStationNumber(stationNumber);
-
-        if (firestationInDataSource.isEmpty()) {
-            String notFoundMessage = "Firestation n°" + stationNumber + " does not exist.";
-            log.error(notFoundMessage);
-            throw new ResourceNotFoundException(notFoundMessage);
-        } else {
-            Firestation firestationToBeUpdated = firestationInDataSource.get();
-            //TODO demander s'il faut mettre à jour tout le temps ou seulement si le champ est différent
-            String address = firestation.getAddress();
-            if (address != null) {
-                firestationToBeUpdated.setAddress(address);
-            }
-            return save(firestationToBeUpdated);
-        }
-
-    }
 
     /**
      * Get list of all firestations in JSON file.
@@ -169,12 +145,8 @@ public class JSonFirestationRepository implements IFirestationRepository {
                 throw new Exception("Failed to update JSON file after deletion of firestation n°" + stationNumber);
             }
         } else {
-            log.error("The firestation n°{} that you are trying to delete does not exist in JSON file.", stationNumber);
-            throw new Exception("The firestation n°"
-                                + stationNumber
-                                + " that you are trying to delete does not exist"
-                                + " " +
-                                "in JSON file.");
+            throw new ResourceNotFoundException("The firestation n°" + stationNumber + " that you are trying to " +
+                                                "delete does not exist" + " " + "in JSON file.");
         }
     }
 

@@ -2,14 +2,16 @@ package com.safetynet.safetynetalerts.repository;
 
 import com.safetynet.safetynetalerts.model.Person;
 
+import java.util.List;
 import java.util.Optional;
 
-public interface IPersonRepository {
+public interface PersonRepository {
 
     /**
      * Save person.
      *
-     * @param person Person to save
+     * @param person
+     *         Person to save
      *
      * @return person saved
      */
@@ -28,7 +30,7 @@ public interface IPersonRepository {
      *
      * @return list of persons.
      */
-    Iterable<Person> findAll();
+    List<Person> findAll();
 
     /**
      * Finds person with specified email.
@@ -40,14 +42,4 @@ public interface IPersonRepository {
      */
     Optional<Person> findByName(String firstName, String lastName);
 
-    /**
-     * Updates a person.
-     *
-     * @param person Person to update.
-     *
-     * @return updated person
-     *
-     * @throws Exception thrown when update failed.
-     */
-    Person update(Person person) throws Exception;
 }
