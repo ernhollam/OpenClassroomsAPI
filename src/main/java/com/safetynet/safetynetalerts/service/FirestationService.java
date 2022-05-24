@@ -2,7 +2,7 @@ package com.safetynet.safetynetalerts.service;
 
 import com.safetynet.safetynetalerts.model.Firestation;
 
-import java.util.Optional;
+import java.util.List;
 
 /**
  * Get, delete or save a firestation from/to a datasource.
@@ -11,12 +11,12 @@ public interface FirestationService {
     /**
      * Gets firestation.
      *
-     * @param id
-     *         ID of firestation to get
+     * @param stationNumber
+     *         Address of firestation to get
      *
      * @return Firestation a firestation if not empty
      */
-    Optional<Firestation> getFirestation(final int id);
+    List<Firestation> getFirestation(final int stationNumber);
 
     /**
      * Gets the list of all firestations.

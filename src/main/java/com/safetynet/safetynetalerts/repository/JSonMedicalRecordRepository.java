@@ -113,8 +113,6 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
                 foundMedicalRecord = Optional.of(medicalRecord);
                 log.debug("Found medicalRecord: {}", foundMedicalRecord);
                 break;
-            } else {
-                log.warn("MedicalRecord for {} {} was not found.", firstName, lastName);
             }
         }
         return foundMedicalRecord;
@@ -128,11 +126,11 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
      */
     @Override
     public void deleteByName(String firstName, String lastName) throws Exception {
-        Optional<MedicalRecord> medicalRecordToDelete = findByName(firstName, lastName);
-        Iterable<MedicalRecord> people                = getMedicalRecordsFromJsonFile();
+        Optional<MedicalRecord> medicalRecordToDelete      = findByName(firstName, lastName);
+        Iterable<MedicalRecord> medicalRecordsFromJsonFile = getMedicalRecordsFromJsonFile();
 
         if (medicalRecordToDelete.isPresent()) {
-            Iterator<MedicalRecord> iterator = people.iterator();
+            Iterator<MedicalRecord> iterator = medicalRecordsFromJsonFile.iterator();
             while (iterator.hasNext()) {
                 // browse list and delete if found
                 MedicalRecord medicalRecord = iterator.next();
@@ -141,7 +139,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
                 }
             }
             // update list of medical records in JSON file
-            JsonNode medicalRecordsNode = medRecordMapper.valueToTree(people);
+            JsonNode medicalRecordsNode = medRecordMapper.valueToTree(medicalRecordsFromJsonFile);
             JsonNode rootNode           = jSonRepository.getNode("root");
             updateMedicalRecordsNode((ObjectNode) rootNode, medicalRecordsNode);
             boolean success = jSonRepository.writeJsonFile(rootNode);

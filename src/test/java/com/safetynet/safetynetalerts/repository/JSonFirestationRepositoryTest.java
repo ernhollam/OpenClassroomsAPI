@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -106,7 +108,7 @@ class JSonFirestationRepositoryTest {
         jSonFirestationRepository.save(firestation);
 
         //THEN
-        Optional<Firestation> savedFirestation = jSonFirestationRepository.findByStationNumber(station);
+        Optional<Firestation> savedFirestation = jSonFirestationRepository.findByAddress(address);
         assertThat(savedFirestation).isPresent();
         Firestation actualFirestation = savedFirestation.get();
         assertThat(actualFirestation.getAddress()).isEqualTo(firestation.getAddress());
@@ -114,40 +116,31 @@ class JSonFirestationRepositoryTest {
     }
 
     @Test
-    void deleteByStationNumber_shouldDelete_SpecifiedFirestationFromFile() throws Exception {
-        //GIVEN an existing firestation in the test data source
-        int                   station             = 4;
-        Optional<Firestation> existingFirestation = jSonFirestationRepository.findByStationNumber(station);
-        assertThat(existingFirestation).isPresent();
+    void findByAddress_shouldReturn_EmptyOptional() {
+        String address = "908 73rd St";
 
-        // WHEN calling deleteByStationNumber()
-        jSonFirestationRepository.deleteByStationNumber(station);
+        Optional<Firestation> firestation = jSonFirestationRepository.findByAddress(address);
 
-        //THEN there must be one less firestation in the file
-        Optional<Firestation> deletedFirestation = jSonFirestationRepository.findByStationNumber(station);
-        assertThat(deletedFirestation).isEmpty();
+        assertThat(firestation).isEmpty();
     }
 
     @Test
-    void deleteByName_shouldNotDelete_WhenFirestationDoesNotExist() {
-        //GIVEN an existing person in the test data source
-        int                   station                = 1;
-        Optional<Firestation> nonExistingFirestation = jSonFirestationRepository.findByStationNumber(station);
-        assertThat(nonExistingFirestation).isEmpty();
+    void findByAddress_shouldReturn_OneFirestation() {
+        String address = "489 Manchester St";
 
-        // WHEN calling deleteByStationNumber()
-        // THEN there must be an exception thrown
-        assertThrows(Exception.class, () -> jSonFirestationRepository.deleteByStationNumber(station));
+        Optional<Firestation> firestation = jSonFirestationRepository.findByAddress(address);
+
+        assertThat(firestation).isPresent();
     }
 
     @Test
-    void findByStationNumber_shouldFindOneFirestation_whenFirestationExists() {
+    void findByStationNumber_shouldFindThreeFirestations() {
         //GIVEN an existing firestation in the test data source
         int station = 2;
         //WHEN calling findByStationNumber()
-        Optional<Firestation> foundFirestation = jSonFirestationRepository.findByStationNumber(station);
-        //THEN there must be six firestations in the test file
-        assertThat(foundFirestation).isPresent();
+        List<Firestation> foundFirestation = jSonFirestationRepository.findByStationNumber(station);
+        //THEN there must be two firestations in the test file
+        assertThat(foundFirestation.size()).isEqualTo(3);
     }
 
     @Test
@@ -155,9 +148,79 @@ class JSonFirestationRepositoryTest {
         //GIVEN a firestation that does not exist in the test data source
         int station = 1;
         //WHEN calling findByStationNumber()
-        Optional<Firestation> foundFirestation = jSonFirestationRepository.findByStationNumber(station);
+        List<Firestation> foundFirestation = jSonFirestationRepository.findByStationNumber(station);
         //THEN there must be six firestations in the test file
-        assertThat(foundFirestation).isEmpty();
+        assertThat(foundFirestation.size()).isEqualTo(0);
     }
+
+    @Test
+    void deleteByAddress_shouldThrow_ResourceNotFoundException_whenAddressDoesNotExist() {
+        String address = "908 73rd St";
+        assertThrows(ResourceNotFoundException.class, () -> jSonFirestationRepository.deleteByAddress(address));
+    }
+
+    @Test
+    void deleteByAddress_shouldDeleteStation() throws Exception {
+        String address = "489 Manchester St";
+
+        jSonFirestationRepository.deleteByAddress(address);
+
+        Optional<Firestation> deletedFirestation = jSonFirestationRepository.findByAddress(address);
+        assertThat(deletedFirestation).isEmpty();
+    }
+
+    @Test
+    void deleteByAddress_shouldDelete_OneFirestationFromFile() throws Exception {
+        String address = "489 Manchester St";
+
+        jSonFirestationRepository.deleteByAddress(address);
+
+
+        List<Firestation> firestations = jSonFirestationRepository.findAll();
+        assertThat(firestations.size()).isEqualTo(nbFirestationsBeforeAnyAction - 1);
+    }
+
+    @Test
+    void deleteByStationNumber_shouldDeleteThreeFirestations() throws Exception {
+        //GIVEN an existing firestation in the test data source
+        int               station              = 2;
+        List<Firestation> existingFirestations = jSonFirestationRepository.findByStationNumber(station);
+        assertThat(existingFirestations.size()).isNotEqualTo(0);
+
+        // WHEN calling deleteByStationNumber()
+        jSonFirestationRepository.deleteByStationNumber(station);
+
+        //THEN there must be no fire stations with specified station number anymore
+        List<Firestation> deletedFirestation = jSonFirestationRepository.findByStationNumber(station);
+        assertThat(deletedFirestation.size()).isEqualTo(0);
+    }
+
+    @Test
+    void deleteByStationNumber_shouldDeleteOneFireStation() throws Exception {
+        //GIVEN an existing firestation in the test data source
+        int               station              = 4;
+        List<Firestation> existingFirestations = jSonFirestationRepository.findByStationNumber(station);
+        assertThat(existingFirestations.size()).isNotEqualTo(0);
+
+        // WHEN calling deleteByStationNumber()
+        jSonFirestationRepository.deleteByStationNumber(station);
+
+        //THEN there must be no fire stations with specified station number anymore
+        List<Firestation> deletedFirestation = jSonFirestationRepository.findByStationNumber(station);
+        assertThat(deletedFirestation.size()).isEqualTo(0);
+    }
+
+    @Test
+    void deleteByStationNumber_shouldNotDelete_WhenFirestationDoesNotExist() {
+        //GIVEN an existing person in the test data source
+        int               station                = 1;
+        List<Firestation> nonExistingFirestation = jSonFirestationRepository.findByStationNumber(station);
+        assertThat(nonExistingFirestation).isEqualTo(Collections.emptyList());
+
+        // WHEN calling deleteByStationNumber()
+        // THEN there must be an exception thrown
+        assertThrows(Exception.class, () -> jSonFirestationRepository.deleteByStationNumber(station));
+    }
+
 
 }

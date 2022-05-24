@@ -23,14 +23,14 @@ public class JSonFirestationService implements FirestationService {
     /**
      * Get firestation.
      *
-     * @param id
+     * @param stationNumber
      *         ID of firestation to get
      *
      * @return Firestation a firestation if not empty
      */
     @Override
-    public Optional<Firestation> getFirestation(final int id) {
-        return firestationRepository.findByStationNumber(id);
+    public List<Firestation> getFirestation(final int stationNumber) {
+        return firestationRepository.findByStationNumber(stationNumber);
     }
 
     /**
@@ -46,12 +46,12 @@ public class JSonFirestationService implements FirestationService {
     /**
      * Delete firestation with given id.
      *
-     * @param id
+     * @param stationNumber
      *         ID of firestation to delete
      */
     @Override
-    public void deleteFirestation(final int id) throws Exception {
-        firestationRepository.deleteByStationNumber(id);
+    public void deleteFirestation(final int stationNumber) throws Exception {
+        firestationRepository.deleteByStationNumber(stationNumber);
     }
 
     /**
@@ -64,6 +64,11 @@ public class JSonFirestationService implements FirestationService {
      */
     @Override
     public Firestation saveFirestation(final Firestation firestation) throws Exception {
+        String                address   = firestation.getAddress();
+        Optional<Firestation> duplicate = firestationRepository.findByAddress(address);
+        if (duplicate.isPresent()) {
+            firestationRepository.deleteByAddress(address);
+        }
         return firestationRepository.save(firestation);
     }
 
@@ -75,13 +80,13 @@ public class JSonFirestationService implements FirestationService {
      */
     @Override
     public Firestation updateFirestation(final Firestation firestation) throws Exception {
-        int station = firestation.getStation();
+        String address = firestation.getAddress();
         Optional<Firestation> firestationInDataSource =
-                firestationRepository.findByStationNumber(station);
+                firestationRepository.findByAddress(address);
         if (firestationInDataSource.isEmpty()) {
-            throw new ResourceNotFoundException("Firestation n°" + station + " does not exist.");
+            throw new ResourceNotFoundException("There is no fire station at the following address: " + address + ".");
         } else {
-            return firestationRepository.save(firestation);
+            return saveFirestation(firestation);
         }
     }
 }

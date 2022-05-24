@@ -11,8 +11,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,7 +53,8 @@ public class JSonFirestationRepository implements FirestationRepository {
     /**
      * Save firestation into JSon file.
      *
-     * @param firestationToSave Firestation to save
+     * @param firestationToSave
+     *         Firestation to save
      *
      * @return firestation saved
      */
@@ -91,50 +92,68 @@ public class JSonFirestationRepository implements FirestationRepository {
     }
 
     /**
-     * Find firestation with specified ID in JSon file.
+     * Find firestation with specified address in JSon file.
      *
-     * @param stationNumber ID of firestation to find
+     * @param address
+     *         Fire station's address
      *
-     * @return Found firestation
+     * @return Found fire station
      */
     @Override
-    public Optional<Firestation> findByStationNumber(int stationNumber) {
+    public Optional<Firestation> findByAddress(String address) {
         Optional<Firestation> foundStation = Optional.empty();
         Iterable<Firestation> firestations = getFirestationsFromJsonFile();
 
         for (Firestation firestation : firestations) {
-            if (firestation.getStation() == stationNumber) {
+            if (firestation.getAddress().equalsIgnoreCase(address)) {
                 foundStation = Optional.of(firestation);
                 log.debug("Found firestation: {}", foundStation);
                 break;
             }
-
         }
         return foundStation;
+    }
+
+    /**
+     * Finds stations by station number.
+     *
+     * @param stationNumber
+     *         Station number of fire stations' addresses to find
+     *
+     * @return a list of fire stations
+     */
+    public List<Firestation> findByStationNumber(int stationNumber) {
+        ArrayList<Firestation> foundStations = new ArrayList<>();
+        List<Firestation>      firestations  = getFirestationsFromJsonFile();
+
+        for (Firestation firestation : firestations) {
+            if (firestation.getStation() == stationNumber) {
+                foundStations.add(firestation);
+            }
+        }
+        return foundStations;
     }
 
 
     /**
      * Delete firestation with specified station number from JSon file.
      *
-     * @param stationNumber Number of firestation to delete
+     * @param stationNumber
+     *         Number of firestation to delete
      */
     @Override
     public void deleteByStationNumber(int stationNumber) throws Exception {
         // find if firestation exists
-        Optional<Firestation> firestationToDelete = findByStationNumber(stationNumber);
+        List<Firestation> firestationsToDelete = findByStationNumber(stationNumber);
         // create iterator to browse list of firestations and delete it if it exists
-        Iterable<Firestation> firestations = getFirestationsFromJsonFile();
-        if (firestationToDelete.isPresent()) {
-            Iterator<Firestation> iterator = firestations.iterator();
-            while (iterator.hasNext()) {
-                Firestation firestation = iterator.next();
-                if (firestation.getStation() == firestationToDelete.get().getStation()) {
-                    iterator.remove();
-                }
-            }
+        List<Firestation> firestationsInDataSource = getFirestationsFromJsonFile();
+        if (firestationsToDelete.isEmpty()) {
+            throw new ResourceNotFoundException("There is no fire station with station number " + stationNumber + ".");
+        } else {
+            // browse list and delete if found
+            firestationsInDataSource.removeIf(firestation -> firestation.getStation() == stationNumber);
             // update firestations node
-            JsonNode updatedFirestationsNode = firestationMapper.valueToTree(firestations);
+            JsonNode updatedFirestationsNode = firestationMapper.valueToTree(firestationsInDataSource);
             JsonNode rootNode                = jSonRepository.getNode("root");
             updateFirestationsNode((ObjectNode) rootNode, updatedFirestationsNode);
             boolean success = jSonRepository.writeJsonFile(rootNode);
@@ -144,17 +163,45 @@ public class JSonFirestationRepository implements FirestationRepository {
                 log.error("Error when updating JSON file after deletion of station n°{}", stationNumber);
                 throw new Exception("Failed to update JSON file after deletion of firestation n°" + stationNumber);
             }
+        }
+    }
+
+    /**
+     * Delete firestation with specified address.
+     *
+     * @param address
+     *         Number of firestation to delete
+     */
+    @Override
+    public void deleteByAddress(String address) throws Exception {
+        Optional<Firestation> firestationToDelete      = findByAddress(address);
+        List<Firestation>     firestationsInDataSource = getFirestationsFromJsonFile();
+
+        if (firestationToDelete.isEmpty()) {
+            throw new ResourceNotFoundException("There is no fire station at the following address: " + address +
+                                                ".");
         } else {
-            throw new ResourceNotFoundException("The firestation n°" + stationNumber + " that you are trying to " +
-                                                "delete does not exist" + " " + "in JSON file.");
+            // browse list and delete if found
+            firestationsInDataSource.removeIf(firestation -> firestation.getAddress().equalsIgnoreCase(firestationToDelete.get().getAddress()));
+        }
+        // update firestations node
+        JsonNode updatedFirestationsNode = firestationMapper.valueToTree(firestationsInDataSource);
+        JsonNode rootNode                = jSonRepository.getNode("root");
+        updateFirestationsNode((ObjectNode) rootNode, updatedFirestationsNode);
+        boolean success = jSonRepository.writeJsonFile(rootNode);
+        if (!success) {
+            throw new Exception("Failed to update JSON file after deletion of firestation with the following " +
+                                "address:\n" + address);
         }
     }
 
     /**
      * Overwrites root node with updated list of firestations.
      *
-     * @param rootNode                Root node
-     * @param updatedFirestationsNode Firestations node updated
+     * @param rootNode
+     *         Root node
+     * @param updatedFirestationsNode
+     *         Firestations node updated
      */
     private void updateFirestationsNode(ObjectNode rootNode, JsonNode updatedFirestationsNode) {
         rootNode.replace("firestations", updatedFirestationsNode);

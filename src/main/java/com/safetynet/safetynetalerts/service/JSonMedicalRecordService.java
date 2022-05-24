@@ -68,6 +68,12 @@ public class JSonMedicalRecordService implements MedicalRecordService {
      */
     @Override
     public MedicalRecord saveMedicalRecord(final MedicalRecord medicalRecord) throws Exception {
+        String                  firstName = medicalRecord.getFirstName();
+        String                  lastName  = medicalRecord.getLastName();
+        Optional<MedicalRecord> duplicate = medicalRecordRepository.findByName(firstName, lastName);
+        if (duplicate.isPresent()) {
+            medicalRecordRepository.deleteByName(firstName, lastName);
+        }
         return medicalRecordRepository.save(medicalRecord);
     }
 
@@ -87,7 +93,7 @@ public class JSonMedicalRecordService implements MedicalRecordService {
             throw new ResourceNotFoundException("The medical record for " + firstName + " " + lastName + " does not " +
                                                 "exist.");
         } else {
-            return medicalRecordRepository.save(medicalRecord);
+            return saveMedicalRecord(medicalRecord);
         }
     }
 }

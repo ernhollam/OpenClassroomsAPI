@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -21,7 +22,7 @@ class JSonFirestationServiceTest {
      * Class under test.
      */
     @Autowired
-    private JSonFirestationService JSonFirestationService;
+    private JSonFirestationService jSonFirestationService;
 
     @MockBean
     private JSonFirestationRepository jSonFirestationRepository;
@@ -32,15 +33,34 @@ class JSonFirestationServiceTest {
         int         stationNumber = 3;
         String      address       = "834 Binoc Ave";
         Firestation firestation   = new Firestation(address, stationNumber);
-        when(jSonFirestationRepository.findByStationNumber(any(int.class))).thenReturn(Optional.of(firestation));
+        when(jSonFirestationRepository.findByAddress(any(String.class))).thenReturn(Optional.of(firestation));
         when(jSonFirestationRepository.save(any(Firestation.class))).thenReturn(firestation);
-
         // WHEN calling update()
-        Firestation updatedFirestation = JSonFirestationService.updateFirestation(firestation);
+        Firestation updatedFirestation = jSonFirestationService.updateFirestation(firestation);
 
         //THEN
         assertThat(updatedFirestation.getStation()).isEqualTo(stationNumber);
         assertThat(updatedFirestation.getAddress()).isEqualTo(address);
+    }
+
+    @Test
+    void update_shouldNot_AddDuplicates() throws Exception {
+        // GIVEN existing firestation with new address
+        int         stationNumber = 3;
+        String      address       = "834 Binoc Ave";
+        Firestation firestation   = new Firestation(address, stationNumber);
+        when(jSonFirestationRepository.findByAddress(any(String.class))).thenReturn(Optional.of(firestation));
+        when(jSonFirestationRepository.save(any(Firestation.class))).thenReturn(firestation);
+
+        List<Firestation> firestationsBeforeUpdate   = jSonFirestationService.getFirestations();
+        int               nbFirestationsBeforeUpdate = firestationsBeforeUpdate.size();
+
+        // WHEN calling update()
+        Firestation updatedFirestation = jSonFirestationService.updateFirestation(firestation);
+
+        //THEN
+        List<Firestation> firestationsAfterUpdate = jSonFirestationService.getFirestations();
+        assertThat(firestationsAfterUpdate.size()).isEqualTo(nbFirestationsBeforeUpdate);
     }
 
     @Test
@@ -50,6 +70,6 @@ class JSonFirestationServiceTest {
 
         // WHEN calling update()
         // THEN there must be an exception thrown
-        assertThrows(ResourceNotFoundException.class, () -> JSonFirestationService.updateFirestation(firestation));
+        assertThrows(ResourceNotFoundException.class, () -> jSonFirestationService.updateFirestation(firestation));
     }
 }

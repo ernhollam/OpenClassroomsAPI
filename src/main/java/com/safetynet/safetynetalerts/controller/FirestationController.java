@@ -1,9 +1,9 @@
 package com.safetynet.safetynetalerts.controller;
 
-import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
 import com.safetynet.safetynetalerts.service.JSonFirestationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,14 +22,13 @@ public class FirestationController {
     }
 
     @GetMapping("/{stationNumber}")
-    public Firestation getFirestation(@PathVariable int stationNumber) {
-        return jSonFirestationService.getFirestation(stationNumber).
-                                     orElseThrow(() -> new ResourceNotFoundException("Firestation n°" + stationNumber +
-                                                                                     " was not found."));
+    public List<Firestation> getFirestation(@PathVariable int stationNumber) {
+        return jSonFirestationService.getFirestation(stationNumber);
     }
 
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Firestation createFirestation(@RequestBody Firestation firestation) throws Exception {
         return jSonFirestationService.saveFirestation(firestation);
     }
@@ -42,6 +41,7 @@ public class FirestationController {
 
 
     @DeleteMapping("/{stationNumber}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFirestation(@PathVariable int stationNumber) throws Exception {
         jSonFirestationService.deleteFirestation(stationNumber);
     }

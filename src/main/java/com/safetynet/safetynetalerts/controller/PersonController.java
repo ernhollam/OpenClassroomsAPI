@@ -4,6 +4,7 @@ import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import com.safetynet.safetynetalerts.service.JSonPersonService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class PersonController {
 
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Person createPerson(@RequestBody Person person) throws Exception {
         return jSonPersonService.savePerson(person);
     }
@@ -42,6 +44,7 @@ public class PersonController {
 
 
     @DeleteMapping("/{firstName}/{lastName}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePerson(@PathVariable String firstName, @PathVariable String lastName) throws Exception {
         jSonPersonService.deletePerson(firstName, lastName);
     }

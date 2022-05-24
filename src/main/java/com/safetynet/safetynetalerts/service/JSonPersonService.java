@@ -81,7 +81,7 @@ public class JSonPersonService implements PersonService {
             log.error(notFoundMessage);
             throw new ResourceNotFoundException(notFoundMessage);
         } else {
-            return personRepository.save(person);
+            return savePerson(person);
         }
     }
 
@@ -95,6 +95,12 @@ public class JSonPersonService implements PersonService {
      */
     @Override
     public Person savePerson(final Person person) throws Exception {
+        String           firstName = person.getFirstName();
+        String           lastName  = person.getLastName();
+        Optional<Person> duplicate = personRepository.findByName(firstName, lastName);
+        if (duplicate.isPresent()) {
+            personRepository.deleteByName(firstName, lastName);
+        }
         return personRepository.save(person);
     }
 }

@@ -4,6 +4,7 @@ import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import com.safetynet.safetynetalerts.service.JSonMedicalRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,6 +32,7 @@ public class MedicalRecordController {
 
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public MedicalRecord createMedicalRecord(@RequestBody MedicalRecord medicalRecord) throws Exception {
         return jSonMedicalRecordService.saveMedicalRecord(medicalRecord);
     }
@@ -43,6 +45,7 @@ public class MedicalRecordController {
 
 
     @DeleteMapping("/{firstName}/{lastName}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMedicalRecord(@PathVariable String firstName, @PathVariable String lastName) throws Exception {
         jSonMedicalRecordService.deleteMedicalRecord(firstName, lastName);
     }
