@@ -4,17 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 @Data
 @Slf4j
@@ -68,24 +63,6 @@ public class JSonRepository {
         }
     }
 
-    /**
-     * Configures ObjectMapper to deserialize dates as LocalDate.
-     *
-     * @param mapper
-     *         An ObjectMapper
-     */
-    private void configureMapper(ObjectMapper mapper) {
-        // configure mapper to deserialize dates to LocalDate
-        JavaTimeModule        module                = new JavaTimeModule();
-        DateTimeFormatter     dateTimeFormatter     = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-        LocalDateDeserializer localDateDeserializer = new LocalDateDeserializer(dateTimeFormatter);
-        LocalDateSerializer   localDateSerializer   = new LocalDateSerializer(dateTimeFormatter);
-        module.addDeserializer(LocalDate.class, localDateDeserializer)
-              .addSerializer(localDateSerializer);
-
-        mapper.registerModule(module)
-              .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    }
 
     /**
      * Reads all data from Json file.
@@ -93,7 +70,6 @@ public class JSonRepository {
      * @return a json node
      */
     public JsonNode readJsonFile() {
-        configureMapper(mapper);
         // prefer returning a NullNode object instead of a null value
         JsonNode rootNode = NullNode.getInstance();
         log.debug("Data source path: {}", datasource);
@@ -137,7 +113,6 @@ public class JSonRepository {
      */
     public boolean writeJsonFile(JsonNode rootNode) {
         log.debug("Writing data {} into JSON file {}", rootNode, jsonFile);
-        configureMapper(mapper);
         try {
             mapper.writeValue(jsonFile, rootNode);
             return true;

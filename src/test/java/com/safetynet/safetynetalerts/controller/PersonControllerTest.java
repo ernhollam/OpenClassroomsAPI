@@ -1,5 +1,6 @@
 package com.safetynet.safetynetalerts.controller;
 
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import com.safetynet.safetynetalerts.repository.JSonRepository;
 import com.safetynet.safetynetalerts.service.JSonPersonService;
@@ -12,16 +13,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,7 +32,7 @@ public class PersonControllerTest {
     @Autowired
     private MockMvc           mockMvc;
     @MockBean
-    private JSonPersonService JSonPersonService;
+    private JSonPersonService jSonPersonService;
 
     private List<Person> listPersons;
     private Person       johnBoyd;
@@ -59,7 +59,7 @@ public class PersonControllerTest {
 
     @Test
     public void getPersons_shouldReturn_ListOfAllPeople() throws Exception {
-        when(JSonPersonService.getPersons()).thenReturn(listPersons);
+        when(jSonPersonService.getPersons()).thenReturn(listPersons);
         mockMvc.perform(get("/person"))
                .andDo(print())
                .andExpect(status().isOk())
@@ -68,74 +68,34 @@ public class PersonControllerTest {
                .andExpect(jsonPath("$[1].firstName", is("Felicia")));
     }
 
-    @Test
-    public void getPersons_shouldReturn_NoContentCode() throws Exception {
-        when(JSonPersonService.getPersons()).thenReturn(Collections.emptyList());
-        mockMvc.perform(get("/person"))
-               .andDo(print())
-               .andExpect(status().isNoContent())
-               .andExpect(jsonPath("$.firstName").doesNotExist());
-    }
 
     @Test
     public void getPerson_shouldReturn_OnePerson_WhenExistsInFile() throws Exception {
         String firstName = feliciaBoyd.getFirstName();
         String lastName  = feliciaBoyd.getLastName();
-        when(JSonPersonService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.of(feliciaBoyd));
+        when(jSonPersonService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.of(feliciaBoyd));
 
 
-        mockMvc.perform(get("/person")
-                                .param("firstName", firstName)
-                                .param("lastName", lastName))
+        mockMvc.perform(get("/person/{firstName}/{lastname}", firstName, lastName))
                .andDo(print())
-               .andExpect(status().isOk())
-               .andExpect(jsonPath("$[0].firstName", is(firstName)))
-               .andExpect(jsonPath("$[0].lastName", is(lastName)))
-               .andExpect(jsonPath("$[0].address", is(feliciaBoyd.getAddress())))
-               .andExpect(jsonPath("$[0].city", is(feliciaBoyd.getCity())))
-               .andExpect(jsonPath("$[0].zip", is(feliciaBoyd.getZip())))
-               .andExpect(jsonPath("$[0].phone", is(feliciaBoyd.getPhone())))
-               .andExpect(jsonPath("$[0].email", is(feliciaBoyd.getEmail())));
+               .andExpect(status().isOk());
     }
 
     @Test
     public void getPerson_shouldThrow_ResourceNotFoundException_whenPersonDoesNotExist() throws Exception {
         String firstName = "Shawna";
         String lastName  = "Stelzer";
-        when(JSonPersonService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.empty());
+        when(jSonPersonService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.empty());
 
 
-        mockMvc.perform(get("/person")
-                                .param("firstName", firstName)
-                                .param("lastName", lastName))
+        mockMvc.perform(get("/person/{firstName}/{lastname}", firstName, lastName))
                .andDo(print())
                .andExpect(status().isNotFound());
     }
 
-    @Test
-    public void getPerson_shouldReturn_BadRequest_WithFirstNameOnly() throws Exception {
-        when(JSonPersonService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.empty());
-
-
-        mockMvc.perform(get("/person")
-                                .param("firstName", feliciaBoyd.getFirstName()))
-               .andDo(print())
-               .andExpect(status().isBadRequest());
-    }
 
     @Test
-    public void getPerson_shouldReturn_BadRequest_WithLastNameOnly() throws Exception {
-        when(JSonPersonService.getPersonByName(any(String.class), any(String.class))).thenReturn(Optional.empty());
-
-
-        mockMvc.perform(get("/person")
-                                .param("lastName", johnBoyd.getLastName()))
-               .andDo(print())
-               .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void savePerson_whenPersonDoesNotAlreadyExist() throws Exception {
+    public void savePerson_shouldReturn_Created_whenPersonDoesNotAlreadyExist() throws Exception {
         String firstName = "Kendrick";
         String lastName  = "Stelzer";
         String address   = "947 E. Rose Dr";
@@ -150,7 +110,7 @@ public class PersonControllerTest {
                                    zip,
                                    phone,
                                    email);
-        when(JSonPersonService.savePerson(person)).thenReturn(person);
+        when(jSonPersonService.savePerson(person)).thenReturn(person);
 
 
         mockMvc.perform(post("/person")
@@ -162,22 +122,56 @@ public class PersonControllerTest {
 
 
     @Test
-    public void deletePerson_shouldDelete_whenPersonExists() {
-        //TODO IT test for delete when person exists
+    public void deletePerson_shouldReturn_noContent_whenPersonExists() throws Exception {
+        String firstName = johnBoyd.getFirstName();
+        String lastName  = johnBoyd.getLastName();
+
+        mockMvc.perform(delete("/person/{firstName}/{lastName}", firstName, lastName))
+               .andDo(print())
+               .andExpect(status().isNoContent());
     }
 
     @Test
-    public void deletePerson_shouldNotDelete_whenPersonDoesNotExist() {
-        //TODO IT test for delete when person does not exist
+    public void deletePerson_shouldReturn_notFound_whenPersonDoesNotExist() throws Exception {
+        String firstName = "Ross";
+        String lastName  = "Geller";
+
+        doThrow(ResourceNotFoundException.class).when(jSonPersonService).deletePerson(firstName, lastName);
+
+        mockMvc.perform(delete("/person/{firstName}/{lastName}", firstName, lastName))
+               .andDo(print())
+               .andExpect(status().isNotFound());
     }
 
     @Test
-    public void updatePerson_shouldUpdate_whenPersonExists() {
-        // TODO IT test for update when person exists
+    public void updatePerson_shouldReturn_ok_whenPersonExists() throws Exception {
+        johnBoyd.setPhone("841-874-6512");
+        johnBoyd.setEmail("johnboyd@email.com");
+        when(jSonPersonService.updatePerson(johnBoyd)).thenReturn(johnBoyd);
+
+        mockMvc.perform(put("/person")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(JSonRepository.toJsonString(johnBoyd)))
+               .andDo(print())
+               .andExpect(status().isOk());
     }
 
     @Test
-    public void updatePerson_shouldNotUpdate_whenPersonDoesNotExist() {
-        // TODO IT test for update when person does not exist
+    public void updatePerson_shouldNotUpdate_whenPersonDoesNotExist() throws Exception {
+        Person ross = new Person("Ross",
+                                 "Geller",
+                                 "90 Bedford Street",
+                                 "New York",
+                                 10014,
+                                 "841-874-1234",
+                                 "wewereonabreak@friends.com");
+
+        when(jSonPersonService.updatePerson(any(Person.class))).thenThrow(ResourceNotFoundException.class);
+
+        mockMvc.perform(put("/person")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(JSonRepository.toJsonString(ross)))
+               .andDo(print())
+               .andExpect(status().isNotFound());
     }
 }
