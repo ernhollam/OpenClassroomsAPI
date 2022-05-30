@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,24 +27,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // Use this annotation to be able to make setUp() method non-static
 public class JSonPersonRepositoryTest {
-    private final ObjectMapper         mapper =
-            new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private ObjectMapper         mapper;
     /**
      * Class under test.
      */
     @Autowired
-    private       JSonPersonRepository jsonPersonRepository;
+    private JSonPersonRepository jsonPersonRepository;
     /**
      * Property data source.
      */
     @Autowired
-    private       DataPathProperties   dataPathProperties;
-    private       File                 jsonFile;
-    private       JsonNode             originalRootNode;
-    private       int                  nbPeopleBeforeAnyAction;
+    private DataPathProperties   dataPathProperties;
+    private File                 jsonFile;
+    private JsonNode             originalRootNode;
+    private int                  nbPeopleBeforeAnyAction;
 
     @BeforeAll
     public void setUp() throws IOException {
+        Jackson2ObjectMapperBuilder mapperBuilder = new Jackson2ObjectMapperBuilder();
+        mapper = mapperBuilder.build();
+
         JsonNode peopleNode;
         String   jsonPath = dataPathProperties.getDatasource();
         jsonFile = new File(jsonPath);

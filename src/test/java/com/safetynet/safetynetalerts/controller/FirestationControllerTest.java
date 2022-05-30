@@ -1,8 +1,8 @@
 package com.safetynet.safetynetalerts.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
-import com.safetynet.safetynetalerts.repository.JSonRepository;
 import com.safetynet.safetynetalerts.service.JSonFirestationService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -35,9 +36,14 @@ public class FirestationControllerTest {
 
     private List<Firestation> listFirestations;
     private Firestation       firestation1;
+    private ObjectMapper      mapper;
 
     @BeforeAll
     void setup() {
+
+        final Jackson2ObjectMapperBuilder mapperBuilder = new Jackson2ObjectMapperBuilder();
+        mapper = mapperBuilder.build();
+
         firestation1 = new Firestation("18 rue des fontaines",
                                        1);
         Firestation firestation2 = new Firestation("159 boulevard charles de gaulle",
@@ -88,7 +94,7 @@ public class FirestationControllerTest {
 
         mockMvc.perform(post("/firestation")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JSonRepository.toJsonString(firestation3)))
+                                .content(mapper.writeValueAsString(firestation3)))
                .andDo(print())
                .andExpect(status().isCreated());
     }
@@ -121,7 +127,7 @@ public class FirestationControllerTest {
 
         mockMvc.perform(put("/firestation")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JSonRepository.toJsonString(firestation1)))
+                                .content(mapper.writeValueAsString(firestation1)))
                .andDo(print())
                .andExpect(status().isOk());
     }
@@ -134,7 +140,7 @@ public class FirestationControllerTest {
 
         mockMvc.perform(put("/firestation")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JSonRepository.toJsonString(firestation3)))
+                                .content(mapper.writeValueAsString(firestation3)))
                .andDo(print())
                .andExpect(status().isNotFound());
     }

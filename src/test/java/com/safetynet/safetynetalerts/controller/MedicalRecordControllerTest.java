@@ -1,8 +1,8 @@
 package com.safetynet.safetynetalerts.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
-import com.safetynet.safetynetalerts.repository.JSonRepository;
 import com.safetynet.safetynetalerts.service.JSonMedicalRecordService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -30,17 +31,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @WebMvcTest(MedicalRecordController.class) // instantiate MedicalRecordController only for this test
 public class MedicalRecordControllerTest {
+    private ObjectMapper             mapper;
     @Autowired
     private MockMvc                  mockMvc;
     @MockBean
     private JSonMedicalRecordService jSonMedicalRecordService;
-
-    private List<MedicalRecord> listMedicalRecords;
-    private MedicalRecord       johnBoyd;
-    private MedicalRecord       feliciaBoyd;
+    private List<MedicalRecord>      listMedicalRecords;
+    private MedicalRecord            johnBoyd;
+    private MedicalRecord            feliciaBoyd;
 
     @BeforeAll
     void setup() {
+
+        final Jackson2ObjectMapperBuilder mapperBuilder = new Jackson2ObjectMapperBuilder();
+        mapper = mapperBuilder.build();
+
         johnBoyd = new MedicalRecord("John",
                                      "Boyd",
                                      LocalDate.of(1984, 3, 6),
@@ -108,7 +113,7 @@ public class MedicalRecordControllerTest {
 
         mockMvc.perform(post("/medicalRecord")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JSonRepository.toJsonString(medicalRecord)))
+                                .content(mapper.writeValueAsString(medicalRecord)))
                .andDo(print())
                .andExpect(status().isCreated());
     }
@@ -144,7 +149,7 @@ public class MedicalRecordControllerTest {
 
         mockMvc.perform(put("/medicalRecord")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JSonRepository.toJsonString(johnBoyd)))
+                                .content(mapper.writeValueAsString(johnBoyd)))
                .andDo(print())
                .andExpect(status().isOk());
     }
@@ -162,7 +167,7 @@ public class MedicalRecordControllerTest {
 
         mockMvc.perform(put("/medicalRecord")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JSonRepository.toJsonString(medicalRecord)))
+                                .content(mapper.writeValueAsString(medicalRecord)))
                .andDo(print())
                .andExpect(status().isNotFound());
     }

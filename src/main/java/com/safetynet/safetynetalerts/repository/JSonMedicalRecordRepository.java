@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
@@ -20,12 +21,14 @@ import java.util.Optional;
 @Data
 public class JSonMedicalRecordRepository implements MedicalRecordRepository {
 
-    private final JSonRepository jSonRepository;
-    private final ObjectMapper   medRecordMapper;
+    private final JSonRepository              jSonRepository;
+    private final ObjectMapper                medRecordMapper;
+    private final Jackson2ObjectMapperBuilder mapperBuilder;
 
-    public JSonMedicalRecordRepository(JSonRepository jSonRepository) {
+    public JSonMedicalRecordRepository(JSonRepository jSonRepository, Jackson2ObjectMapperBuilder mapperBuilder) {
         this.jSonRepository = jSonRepository;
-        this.medRecordMapper = jSonRepository.getMapper();
+        this.mapperBuilder = mapperBuilder;
+        this.medRecordMapper = this.mapperBuilder.build();
     }
 
 
@@ -55,7 +58,8 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     /**
      * Save medical record into JSon file.
      *
-     * @param medicalRecord Medical record to save
+     * @param medicalRecord
+     *         Medical record to save
      *
      * @return medical record saved
      */
@@ -82,8 +86,6 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     }
 
 
-
-
     /**
      * Get list of all medical records in JSON file.
      *
@@ -97,8 +99,10 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     /**
      * Find medical record with specified name.
      *
-     * @param firstName First name of medical record to find
-     * @param lastName  Last name of medical record to find
+     * @param firstName
+     *         First name of medical record to find
+     * @param lastName
+     *         Last name of medical record to find
      *
      * @return Found medical record
      */
@@ -121,8 +125,10 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     /**
      * Delete medicalRecord with specified name from JSon file.
      *
-     * @param firstName First name of medicalRecord to delete
-     * @param lastName  Last name of medicalRecord to delete
+     * @param firstName
+     *         First name of medicalRecord to delete
+     * @param lastName
+     *         Last name of medicalRecord to delete
      */
     @Override
     public void deleteByName(String firstName, String lastName) throws Exception {
@@ -164,8 +170,10 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     /**
      * Overwrites root node with updated list of medicalRecords.
      *
-     * @param rootNode                  Root node
-     * @param updatedMedicalRecordsNode MedicalRecords node updated
+     * @param rootNode
+     *         Root node
+     * @param updatedMedicalRecordsNode
+     *         MedicalRecords node updated
      */
     private void updateMedicalRecordsNode(ObjectNode rootNode, JsonNode updatedMedicalRecordsNode) {
         rootNode.replace("medicalrecords", updatedMedicalRecordsNode);

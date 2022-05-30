@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
@@ -18,49 +19,36 @@ public class JSonRepository {
     /**
      * Property object with path to data source.
      */
-    private final DataPathProperties dataPathProperties;
+    private final DataPathProperties          dataPathProperties;
     /**
      * Path to JSON file.
      */
-    private final String             datasource;
+    private final String                      datasource;
     /**
      * JSON file.
      */
-    private final File               jsonFile;
+    private final File                        jsonFile;
+    private final Jackson2ObjectMapperBuilder mapperBuilder;
     /**
      * Object mapper.
      */
-    ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT); // Enable pretty print globally
+    private       ObjectMapper                mapper;
 
     /**
      * JSonRepository constructor
      *
      * @param dataPathProperties
      *         Path to application properties
+     * @param mapperBuilder
+     *         Mapper builder
      */
 
-    public JSonRepository(DataPathProperties dataPathProperties) {
+    public JSonRepository(DataPathProperties dataPathProperties, Jackson2ObjectMapperBuilder mapperBuilder) {
         this.dataPathProperties = dataPathProperties;
         this.datasource = dataPathProperties.getDatasource();
+        this.mapperBuilder = mapperBuilder;
         this.jsonFile = new File(datasource);
-    }
-
-    /**
-     * Converts any object to Json.
-     *
-     * @param obj
-     *         Any object to convert into a Json String
-     *
-     * @return Object as json string.
-     */
-    public static String toJsonString(final Object obj) {
-        try {
-            log.debug("Converting object {} to Json String", obj);
-            return new ObjectMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            log.error("An error occurred when converting object {} to JSON.\n" + e.getMessage());
-            return "";
-        }
+        mapper = mapperBuilder.build();
     }
 
 
@@ -114,6 +102,7 @@ public class JSonRepository {
     public boolean writeJsonFile(JsonNode rootNode) {
         log.debug("Writing data {} into JSON file {}", rootNode, jsonFile);
         try {
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             mapper.writeValue(jsonFile, rootNode);
             return true;
         } catch (IOException ioException) {

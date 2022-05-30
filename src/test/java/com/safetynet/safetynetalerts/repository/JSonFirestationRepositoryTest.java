@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
 import org.junit.jupiter.api.AfterEach;
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class JSonFirestationRepositoryTest {
 
-    private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private ObjectMapper mapper;
 
     /**
      * Class under test
@@ -46,6 +46,10 @@ class JSonFirestationRepositoryTest {
 
     @BeforeAll
     public void setUp() throws IOException {
+
+        Jackson2ObjectMapperBuilder mapperBuilder = new Jackson2ObjectMapperBuilder();
+        mapper = mapperBuilder.build();
+
         JsonNode firestationsNode;
         String   jsonPath = dataPathProperties.getDatasource();
         jsonFile = new File(jsonPath);

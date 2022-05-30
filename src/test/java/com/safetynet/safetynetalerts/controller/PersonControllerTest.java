@@ -1,8 +1,8 @@
 package com.safetynet.safetynetalerts.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
-import com.safetynet.safetynetalerts.repository.JSonRepository;
 import com.safetynet.safetynetalerts.service.JSonPersonService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -29,17 +30,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @WebMvcTest(PersonController.class) // instantiate PersonController only for this test
 public class PersonControllerTest {
+    private ObjectMapper      mapper;
     @Autowired
     private MockMvc           mockMvc;
     @MockBean
     private JSonPersonService jSonPersonService;
-
-    private List<Person> listPersons;
-    private Person       johnBoyd;
-    private Person       feliciaBoyd;
+    private List<Person>      listPersons;
+    private Person            johnBoyd;
+    private Person            feliciaBoyd;
 
     @BeforeAll
     void setup() {
+
+        final Jackson2ObjectMapperBuilder mapperBuilder = new Jackson2ObjectMapperBuilder();
+        mapper = mapperBuilder.build();
+
         johnBoyd = new Person("John",
                               "Boyd",
                               "1509 Culver St",
@@ -115,7 +120,7 @@ public class PersonControllerTest {
 
         mockMvc.perform(post("/person")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JSonRepository.toJsonString(person)))
+                                .content(mapper.writeValueAsString(person)))
                .andDo(print())
                .andExpect(status().isCreated());
     }
@@ -151,7 +156,7 @@ public class PersonControllerTest {
 
         mockMvc.perform(put("/person")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JSonRepository.toJsonString(johnBoyd)))
+                                .content(mapper.writeValueAsString(johnBoyd)))
                .andDo(print())
                .andExpect(status().isOk());
     }
@@ -170,7 +175,7 @@ public class PersonControllerTest {
 
         mockMvc.perform(put("/person")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JSonRepository.toJsonString(ross)))
+                                .content(mapper.writeValueAsString(ross)))
                .andDo(print())
                .andExpect(status().isNotFound());
     }

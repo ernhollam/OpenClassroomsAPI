@@ -9,6 +9,7 @@ import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -22,10 +23,14 @@ import java.util.Optional;
 public class JSonFirestationRepository implements FirestationRepository {
 
     private final JSonRepository jSonRepository;
-    private final ObjectMapper   firestationMapper = new ObjectMapper();
 
-    public JSonFirestationRepository(JSonRepository jSonRepository) {
+    private Jackson2ObjectMapperBuilder mapperBuilder;
+    private ObjectMapper                firestationMapper;
+
+    public JSonFirestationRepository(JSonRepository jSonRepository, Jackson2ObjectMapperBuilder mapperBuilder) {
         this.jSonRepository = jSonRepository;
+        this.mapperBuilder = mapperBuilder;
+        this.firestationMapper = this.mapperBuilder.build();
     }
 
     /**

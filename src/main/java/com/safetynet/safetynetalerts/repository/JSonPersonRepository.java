@@ -9,6 +9,7 @@ import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
@@ -21,11 +22,14 @@ import java.util.Optional;
 @Data
 public class JSonPersonRepository implements PersonRepository {
 
-    private final JSonRepository jSonRepository;
-    private final ObjectMapper   personMapper = new ObjectMapper();
+    private final JSonRepository              jSonRepository;
+    private final Jackson2ObjectMapperBuilder mapperBuilder;
+    private       ObjectMapper                personMapper;
 
-    public JSonPersonRepository(JSonRepository jSonRepository) {
+    public JSonPersonRepository(JSonRepository jSonRepository, Jackson2ObjectMapperBuilder mapperBuilder) {
         this.jSonRepository = jSonRepository;
+        this.mapperBuilder = mapperBuilder;
+        this.personMapper = this.mapperBuilder.build();
     }
 
 
