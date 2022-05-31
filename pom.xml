@@ -29,6 +29,10 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+        <dependency>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
     </dependencies>
     <description>Safety Net Alerts API with SpringBoot</description>
     <groupId>com.safetynet</groupId>

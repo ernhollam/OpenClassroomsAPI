@@ -65,8 +65,8 @@ public class JSonRepository {
 
         try {
             rootNode = mapper.readTree(jsonFile);
-            log.info("Resulting JsonNode read from file: {}",
-                     rootNode);
+            log.debug("Resulting JsonNode read from file: {}",
+                      rootNode);
             return rootNode;
         } catch (IOException ioException) {
             log.error("Error while reading JSON file: ", ioException);

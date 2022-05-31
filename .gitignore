@@ -3,7 +3,8 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-**/src/test/resources/data_test.json
+src/test/resources/data_test.json
+safetynet_alerts.log
 
 ### STS ###
 .apt_generated

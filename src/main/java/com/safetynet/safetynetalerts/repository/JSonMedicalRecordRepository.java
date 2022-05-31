@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -160,10 +161,12 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
         } else {
             log.error("{} {}'s medical record does not exist in JSON file. ",
                       firstName, lastName);
-            throw new Exception("The medical record for " + firstName + " " + lastName + " you are trying to delete " +
-                                "does" +
-                                " not " +
-                                "exist in JSON file.");
+            throw new ResourceNotFoundException("The medical record for " + firstName + " " + lastName + " you are " +
+                                                "trying to " +
+                                                "delete " +
+                                                "does" +
+                                                " not " +
+                                                "exist in JSON file.");
         }
     }
 
