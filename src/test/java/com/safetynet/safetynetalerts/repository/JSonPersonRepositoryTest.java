@@ -75,7 +75,7 @@ public class JSonPersonRepositoryTest {
 
     @Test
     public void findAll_shouldReturn_TheListOfAllPeople() {
-        //GIVEN JSON data file read in readJsonFile()
+        //GIVEN JSON data file read in readData()
         //WHEN calling findAll()
         List<Person> foundPeople = jsonPersonRepository.findAll();
         //THEN there must be six persons in the test file

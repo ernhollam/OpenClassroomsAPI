@@ -75,7 +75,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
         // Overwrite root node with new medicalrecords node
         updateMedicalRecordsNode((ObjectNode) rootNode, medRecordsNode);
         //Write data
-        boolean success = jSonRepository.writeJsonFile(rootNode);
+        boolean success = jSonRepository.writeData(rootNode);
         if (success) {
             log.debug("Saved new medicalRecord {} {}.", medicalRecord.getFirstName(), medicalRecord.getLastName());
             return medicalRecord;
@@ -149,7 +149,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
             JsonNode medicalRecordsNode = medRecordMapper.valueToTree(medicalRecordsFromJsonFile);
             JsonNode rootNode           = jSonRepository.getNode("root");
             updateMedicalRecordsNode((ObjectNode) rootNode, medicalRecordsNode);
-            boolean success = jSonRepository.writeJsonFile(rootNode);
+            boolean success = jSonRepository.writeData(rootNode);
             if (success) {
                 log.debug("Deleted {} {}'s medical record", firstName, lastName);
             } else {

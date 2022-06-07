@@ -2,7 +2,6 @@ package com.safetynet.safetynetalerts.repository;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +56,7 @@ public class JSonRepository {
      *
      * @return a json node
      */
-    public JsonNode readJsonFile() {
+    public JsonNode readData() {
         // prefer returning a NullNode object instead of a null value
         JsonNode rootNode = NullNode.getInstance();
         log.debug("Data source path: {}", datasource);
@@ -75,23 +74,6 @@ public class JSonRepository {
     }
 
     /**
-     * Gets specified node.
-     *
-     * @param nodeName
-     *         String to specify the name of the node
-     *
-     * @return required node as ArrayNode
-     */
-    public JsonNode getNode(String nodeName) {
-        JsonNode rootNode = readJsonFile(); // Get root node
-        if (nodeName.equals("root")) {
-            return rootNode;
-        } else {
-            return rootNode.path(nodeName);
-        }
-    }
-
-    /**
      * Writes new node to Json file.
      *
      * @param rootNode
@@ -99,10 +81,9 @@ public class JSonRepository {
      *
      * @return true if no error occurred
      */
-    public boolean writeJsonFile(JsonNode rootNode) {
+    public boolean writeData(JsonNode rootNode) {
         log.debug("Writing data {} into JSON file {}", rootNode, jsonFile);
         try {
-            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             mapper.writeValue(jsonFile, rootNode);
             return true;
         } catch (IOException ioException) {
@@ -111,4 +92,23 @@ public class JSonRepository {
             return false;
         }
     }
+
+    /**
+     * Gets specified node.
+     *
+     * @param nodeName
+     *         String to specify the name of the node
+     *
+     * @return required node as ArrayNode
+     */
+    public JsonNode getNode(String nodeName) {
+        JsonNode rootNode = readData(); // Get root node
+        if (nodeName.equals("root")) {
+            return rootNode;
+        } else {
+            return rootNode.path(nodeName);
+        }
+    }
+
+
 }

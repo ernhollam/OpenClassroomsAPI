@@ -74,7 +74,7 @@ class JSonFirestationRepositoryTest {
 
     @Test
     public void findAll_shouldReturn_TheListOfAllFirestations() {
-        //GIVEN JSON data file read in readJsonFile()
+        //GIVEN JSON data file read in readData()
         //WHEN calling findAll()
         List<Firestation> foundPeople = jSonFirestationRepository.findAll();
         //THEN there must be six firestations in the test file

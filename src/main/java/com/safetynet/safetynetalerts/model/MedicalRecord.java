@@ -12,13 +12,9 @@ import java.time.LocalDate;
 public class MedicalRecord {
 
     private String firstName;
-
     private String lastName;
-
     private LocalDate birthdate;
-
     private String[] medications;
-
     private String[] allergies;
 
     public boolean equals(MedicalRecord medicalRecord) {

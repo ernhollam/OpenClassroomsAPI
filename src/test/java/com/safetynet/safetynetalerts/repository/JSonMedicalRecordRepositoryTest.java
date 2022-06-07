@@ -71,7 +71,7 @@ public class JSonMedicalRecordRepositoryTest {
 
     @Test
     public void findAll_shouldReturn_TheListOfAllMedicalRecords() {
-        //GIVEN JSON data file read in readJsonFile()
+        //GIVEN JSON data file read in readData()
         //WHEN calling findAll()
         List<MedicalRecord> foundMedicalRecords = jSonMedicalRecordRepository.findAll();
         //THEN there must be six persons in the test file

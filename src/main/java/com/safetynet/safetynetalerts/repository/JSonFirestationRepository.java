@@ -74,7 +74,7 @@ public class JSonFirestationRepository implements FirestationRepository {
         // Overwrite root node with new persons node
         updateFirestationsNode((ObjectNode) rootNode, firestationsNode);
         //Write data
-        boolean success          = jSonRepository.writeJsonFile(rootNode);
+        boolean success          = jSonRepository.writeData(rootNode);
         int     newStationNumber = firestationToSave.getStation();
         if (success) {
             log.debug("Saved new firestation n°{}.", newStationNumber);
@@ -161,7 +161,7 @@ public class JSonFirestationRepository implements FirestationRepository {
             JsonNode updatedFirestationsNode = firestationMapper.valueToTree(firestationsInDataSource);
             JsonNode rootNode                = jSonRepository.getNode("root");
             updateFirestationsNode((ObjectNode) rootNode, updatedFirestationsNode);
-            boolean success = jSonRepository.writeJsonFile(rootNode);
+            boolean success = jSonRepository.writeData(rootNode);
             if (success) {
                 log.debug("Deleted firestation n°{}", stationNumber);
             } else {
@@ -193,7 +193,7 @@ public class JSonFirestationRepository implements FirestationRepository {
         JsonNode updatedFirestationsNode = firestationMapper.valueToTree(firestationsInDataSource);
         JsonNode rootNode                = jSonRepository.getNode("root");
         updateFirestationsNode((ObjectNode) rootNode, updatedFirestationsNode);
-        boolean success = jSonRepository.writeJsonFile(rootNode);
+        boolean success = jSonRepository.writeData(rootNode);
         if (!success) {
             throw new Exception("Failed to update JSON file after deletion of firestation with the following " +
                                 "address:\n" + address);

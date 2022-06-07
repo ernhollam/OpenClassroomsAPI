@@ -18,10 +18,32 @@ public interface PersonRepository {
     Person save(Person person) throws Exception;
 
     /**
+     * Returns a list of people who live at a given address.
+     *
+     * @param address
+     *         Address to find people at.
+     *
+     * @return list of Person.
+     */
+    List<Person> findByAddress(String address);
+
+    /**
+     * Returns a list of people who live in a given city.
+     *
+     * @param city
+     *         City where to find people.
+     *
+     * @return list of Person.
+     */
+    List<Person> findByCity(String city);
+
+    /**
      * Delete person with specified name.
      *
-     * @param firstName First name of person to delete
-     * @param lastName  Last name of person to delete
+     * @param firstName
+     *         First name of person to delete
+     * @param lastName
+     *         Last name of person to delete
      */
     void deleteByName(String firstName, String lastName) throws Exception;
 

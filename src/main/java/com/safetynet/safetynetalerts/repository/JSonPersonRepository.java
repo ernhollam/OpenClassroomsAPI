@@ -13,9 +13,9 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -38,7 +38,8 @@ public class JSonPersonRepository implements PersonRepository {
      *
      * @return a list of Person.
      */
-    private List<Person> getPeopleFromJsonFile() {
+    @Override
+    public List<Person> findAll() {
         final JsonNode personsNode = jSonRepository.getNode("persons");
 
         if (personsNode.isEmpty()) {
@@ -75,7 +76,7 @@ public class JSonPersonRepository implements PersonRepository {
         // Overwrite root node with new persons node
         updatePersonsNode((ObjectNode) rootNode, personsNode);
         //Write data
-        boolean success = jSonRepository.writeJsonFile(rootNode);
+        boolean success = jSonRepository.writeData(rootNode);
         if (success) {
             log.debug("Saved new person {} {}.", firstName, lastName);
             return personToSave;
@@ -86,15 +87,6 @@ public class JSonPersonRepository implements PersonRepository {
         }
     }
 
-    /**
-     * Get list of all persons in JSON file.
-     *
-     * @return list of persons.
-     */
-    @Override
-    public List<Person> findAll() {
-        return getPeopleFromJsonFile();
-    }
 
     /**
      * Find person with specified name.
@@ -108,20 +100,44 @@ public class JSonPersonRepository implements PersonRepository {
      */
     @Override
     public Optional<Person> findByName(String firstName, String lastName) {
-        Optional<Person> foundPerson = Optional.empty();
-        Iterable<Person> people      = getPeopleFromJsonFile();
-
-        for (Person person : people) {
-            if (person.getFirstName().equalsIgnoreCase(firstName)
-                && person.getLastName().equalsIgnoreCase(lastName)) {
-                foundPerson = Optional.of(person);
-                log.debug("Found person: {}", foundPerson);
-                break;
-            }
-        }
-        return foundPerson;
+        List<Person> people = findAll();
+        return people.stream()
+                     .filter(person -> (person.getFirstName().equalsIgnoreCase(firstName)
+                                        && person.getLastName().equalsIgnoreCase(lastName)))
+                     .findFirst();
     }
 
+    /**
+     * Returns a list of people who live at a given address.
+     *
+     * @param address
+     *         Address to find people at.
+     *
+     * @return list of Person.
+     */
+    @Override
+    public List<Person> findByAddress(String address) {
+        List<Person> people = findAll();
+        return people.stream()
+                     .filter(person -> person.getAddress().equalsIgnoreCase(address))
+                     .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns a list of people who live in a given city.
+     *
+     * @param city
+     *         City where to find people.
+     *
+     * @return list of Person.
+     */
+    @Override
+    public List<Person> findByCity(String city) {
+        List<Person> persons = findAll();
+        return persons.stream()
+                      .filter(person -> person.getCity().equalsIgnoreCase(city))
+                      .collect(Collectors.toList());
+    }
 
     /**
      * Delete person with specified name from JSon file.
@@ -134,22 +150,15 @@ public class JSonPersonRepository implements PersonRepository {
     @Override
     public void deleteByName(String firstName, String lastName) throws Exception {
         Optional<Person> personToDelete = findByName(firstName, lastName);
-        Iterable<Person> people         = getPeopleFromJsonFile();
+        List<Person>     people         = findAll();
 
         if (personToDelete.isPresent()) {
-            Iterator<Person> iterator = people.iterator();
-            while (iterator.hasNext()) {
-                // browse list and delete if found
-                Person person = iterator.next();
-                if (person.equals(personToDelete.get())) {
-                    iterator.remove();
-                }
-            }
+            people.removeIf(person -> person.equals(personToDelete.get()));
             // update list of persons in JSON file
             JsonNode personsNode = personMapper.valueToTree(people);
             JsonNode rootNode    = jSonRepository.getNode("root");
             updatePersonsNode((ObjectNode) rootNode, personsNode);
-            boolean success = jSonRepository.writeJsonFile(rootNode);
+            boolean success = jSonRepository.writeData(rootNode);
             if (success) {
                 log.debug("Deleted person: {} {}", firstName, lastName);
             } else {
