@@ -4,11 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,11 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,8 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // Use this annotation to be able to make setUp() method non-static
 public class JSonMedicalRecordRepositoryTest {
-    private final ObjectMapper mapper =
-            new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private ObjectMapper mapper;
 
     /**
      * Class under test.
@@ -47,20 +42,12 @@ public class JSonMedicalRecordRepositoryTest {
     private File                        jsonFile;
     private JsonNode                    originalRootNode;
     private int                         nbMedicalRecordsBeforeAnyAction;
+    @Autowired
+    private Jackson2ObjectMapperBuilder mapperBuilder;
 
     @BeforeAll
     public void setUp() throws IOException {
-        // configure mapper to deserialize properly birthdays
-        JavaTimeModule        module                = new JavaTimeModule();
-        DateTimeFormatter     dateTimeFormatter     = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-        LocalDateDeserializer localDateDeserializer = new LocalDateDeserializer(dateTimeFormatter);
-        LocalDateSerializer   localDateSerializer   = new LocalDateSerializer(dateTimeFormatter);
-        module.addDeserializer(LocalDate.class, localDateDeserializer)
-              .addSerializer(localDateSerializer);
-
-        mapper.registerModule(module)
-              .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
+        mapper = mapperBuilder.build();
         JsonNode medicalRecordsNode;
         String   jsonPath = dataPathProperties.getDatasource();
         jsonFile = new File(jsonPath);
@@ -163,7 +150,7 @@ public class JSonMedicalRecordRepositoryTest {
     }
 
     @Test
-    void deleteByName_shouldNotDelete_WhenMedicalRecordDoesNotExist() throws Exception {
+    void deleteByName_shouldNotDelete_WhenMedicalRecordDoesNotExist() {
         //GIVEN a person who does not exist in the test data source
         String                  firstName                = "Brian";
         String                  lastName                 = "Stelzer";

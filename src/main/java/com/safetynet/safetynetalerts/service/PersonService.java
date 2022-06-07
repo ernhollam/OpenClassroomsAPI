@@ -1,53 +1,49 @@
 package com.safetynet.safetynetalerts.service;
 
 import com.safetynet.safetynetalerts.model.Person;
-import com.safetynet.safetynetalerts.repository.PersonRepository;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-@Data
-@Service
-public class PersonService {
-
-    /**
-     * Instance of PersonRepository.
-     */
-    @Autowired
-    private PersonRepository personRepository;
-
+/**
+ * Get, delete or save a person from/to a datasource.
+ */
+public interface PersonService {
     /**
      * Get person.
      *
-     * @param firstName Person's first name
-     * @param lastName  Person's last name
+     * @param firstName
+     *         Person's first name
+     * @param lastName
+     *         Person's last name
      *
      * @return Person a person if not empty
      */
-    public Optional<Person> getPersonByName(final String firstName, final String lastName) {
-        return personRepository.findByName(firstName, lastName);
-    }
+    Optional<Person> getPersonByName(final String firstName, final String lastName);
 
     /**
      * Get the list of all persons.
      *
      * @return an iterable of Persons
      */
-    public Iterable<Person> getPersons() {
-        return personRepository.findAll();
-    }
+    Iterable<Person> getPersons();
 
     /**
      * Delete person with given name.
      *
-     * @param firstName First name of person to delete
-     * @param lastName  Last name of person to delete
+     * @param firstName
+     *         First name of person to delete
+     * @param lastName
+     *         Last name of person to delete
      */
-    public void deletePerson(final String firstName, final String lastName) throws Exception {
-        personRepository.deleteByName(firstName, lastName);
-    }
+    void deletePerson(final String firstName, final String lastName) throws Exception;
+
+    /**
+     * Update person with given name.
+     *
+     * @param person
+     *         Person to update
+     */
+    Person updatePerson(final Person person) throws Exception;
 
     /**
      * Save person.
@@ -56,7 +52,5 @@ public class PersonService {
      *
      * @return Person
      */
-    public Person savePerson(final Person person) throws Exception {
-        return personRepository.save(person);
-    }
+    Person savePerson(final Person person) throws Exception;
 }

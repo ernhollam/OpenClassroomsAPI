@@ -2,13 +2,15 @@ package com.safetynet.safetynetalerts.repository;
 
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface MedicalRecordRepository {
     /**
      * Save medical record.
      *
-     * @param medicalRecord Medical record to save
+     * @param medicalRecord
+     *         Medical record to save
      *
      * @return medical record saved
      */
@@ -27,7 +29,7 @@ public interface MedicalRecordRepository {
      *
      * @return list of medical records.
      */
-    Iterable<MedicalRecord> findAll();
+    List<MedicalRecord> findAll();
 
     /**
      * Find medical record with specified ID.

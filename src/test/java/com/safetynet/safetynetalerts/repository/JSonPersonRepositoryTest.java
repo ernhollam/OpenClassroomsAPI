@@ -4,7 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,28 +22,36 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // Use this annotation to be able to make setUp() method non-static
 public class JSonPersonRepositoryTest {
-    private final ObjectMapper         mapper =
-            new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private ObjectMapper         mapper;
     /**
      * Class under test.
      */
     @Autowired
-    private       JSonPersonRepository jsonPersonRepository;
+    private JSonPersonRepository jsonPersonRepository;
     /**
      * Property data source.
      */
     @Autowired
-    private       DataPathProperties   dataPathProperties;
-    private       File                 jsonFile;
-    private       JsonNode             originalRootNode;
-    private       int                  nbPeopleBeforeAnyAction;
+    private DataPathProperties   dataPathProperties;
+    /**
+     * Object mapper builder.
+     */
+    @Autowired
+    Jackson2ObjectMapperBuilder mapperBuilder;
+
+    private File     jsonFile;
+    private JsonNode originalRootNode;
+    private int      nbPeopleBeforeAnyAction;
 
     @BeforeAll
     public void setUp() throws IOException {
+        mapper = mapperBuilder.build();
+
         JsonNode peopleNode;
         String   jsonPath = dataPathProperties.getDatasource();
         jsonFile = new File(jsonPath);
@@ -73,6 +83,18 @@ public class JSonPersonRepositoryTest {
     }
 
     @Test
+    public void findAll_shouldReturn_EmptyList_WhenNodeIsEmpty() throws IOException {
+        // GIVEN a file with no medical records
+        ObjectNode updatedRootNode = originalRootNode.deepCopy();
+        updatedRootNode.remove("persons");
+        mapper.writeValue(jsonFile, updatedRootNode);
+        // WHEN calling findAll()
+        List<Person> foundPeople = jsonPersonRepository.findAll();
+        //THEN there must be six persons in the test file
+        assertTrue(foundPeople.isEmpty());
+    }
+
+    @Test
     void save_shouldAddNewPersonInFile() throws Exception {
         //GIVEN a person with complete data to add to the list
         Person TBoyd = new Person("Tenley",
@@ -88,11 +110,11 @@ public class JSonPersonRepositoryTest {
 
         //THEN
         final JsonNode personsNode = jsonPersonRepository.getJSonRepository().getNode("persons");
-        List<Person> actualPeople =  mapper.
+        List<Person> actualPeople = mapper.
                 convertValue(personsNode,
                              new TypeReference<>() {
                              });
-        int          result       = actualPeople.size();
+        int result = actualPeople.size();
         assertThat(result).isEqualTo(nbPeopleBeforeAnyAction + 1);
     }
 
@@ -124,8 +146,8 @@ public class JSonPersonRepositoryTest {
     @Test
     void deleteByName_shouldDelete_SpecifiedPersonFromFile_whenPersonExists() throws Exception {
         //GIVEN an existing person in the test data source
-        String firstName = "Jonanathan";
-        String lastName  = "Marrack";
+        String           firstName      = "Jonanathan";
+        String           lastName       = "Marrack";
         Optional<Person> existingPerson = jsonPersonRepository.findByName(firstName, lastName);
         assertThat(existingPerson).isPresent();
 
@@ -138,16 +160,16 @@ public class JSonPersonRepositoryTest {
     }
 
     @Test
-    void deleteByName_shouldNotDelete_WhenPersonDoesNotExist() throws Exception {
+    void deleteByName_shouldNotDelete_WhenPersonDoesNotExist() {
         //GIVEN a person who does not exist in the test data source
-        String firstName = "Brian";
-        String lastName  = "Stelzer";
+        String           firstName         = "Brian";
+        String           lastName          = "Stelzer";
         Optional<Person> nonExistingPerson = jsonPersonRepository.findByName(firstName, lastName);
         assertThat(nonExistingPerson).isEmpty();
 
         // WHEN calling deleteByName()
         // THEN there must be an exception thrown
-        assertThrows(Exception.class, () -> jsonPersonRepository.deleteByName(firstName, lastName));
+        assertThrows(ResourceNotFoundException.class, () -> jsonPersonRepository.deleteByName(firstName, lastName));
     }
 
     @Test
@@ -171,4 +193,5 @@ public class JSonPersonRepositoryTest {
         //THEN there must be six persons in the test file
         assertThat(foundPerson).isEmpty();
     }
+
 }

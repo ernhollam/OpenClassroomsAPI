@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
@@ -20,12 +22,14 @@ import java.util.Optional;
 @Data
 public class JSonMedicalRecordRepository implements MedicalRecordRepository {
 
-    private final JSonRepository jSonRepository;
-    private final ObjectMapper   medRecordMapper;
+    private final JSonRepository              jSonRepository;
+    private final ObjectMapper                medRecordMapper;
+    private final Jackson2ObjectMapperBuilder mapperBuilder;
 
-    public JSonMedicalRecordRepository(JSonRepository jSonRepository) {
+    public JSonMedicalRecordRepository(JSonRepository jSonRepository, Jackson2ObjectMapperBuilder mapperBuilder) {
         this.jSonRepository = jSonRepository;
-        this.medRecordMapper = jSonRepository.getMapper();
+        this.mapperBuilder = mapperBuilder;
+        this.medRecordMapper = this.mapperBuilder.build();
     }
 
 
@@ -55,7 +59,8 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     /**
      * Save medical record into JSon file.
      *
-     * @param medicalRecord Medical record to save
+     * @param medicalRecord
+     *         Medical record to save
      *
      * @return medical record saved
      */
@@ -81,6 +86,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
         }
     }
 
+
     /**
      * Get list of all medical records in JSON file.
      *
@@ -94,8 +100,10 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     /**
      * Find medical record with specified name.
      *
-     * @param firstName First name of medical record to find
-     * @param lastName  Last name of medical record to find
+     * @param firstName
+     *         First name of medical record to find
+     * @param lastName
+     *         Last name of medical record to find
      *
      * @return Found medical record
      */
@@ -110,8 +118,6 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
                 foundMedicalRecord = Optional.of(medicalRecord);
                 log.debug("Found medicalRecord: {}", foundMedicalRecord);
                 break;
-            } else {
-                log.warn("MedicalRecord for {} {} was not found.", firstName, lastName);
             }
         }
         return foundMedicalRecord;
@@ -120,16 +126,18 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     /**
      * Delete medicalRecord with specified name from JSon file.
      *
-     * @param firstName First name of medicalRecord to delete
-     * @param lastName  Last name of medicalRecord to delete
+     * @param firstName
+     *         First name of medicalRecord to delete
+     * @param lastName
+     *         Last name of medicalRecord to delete
      */
     @Override
     public void deleteByName(String firstName, String lastName) throws Exception {
-        Optional<MedicalRecord> medicalRecordToDelete = findByName(firstName, lastName);
-        Iterable<MedicalRecord> people                = getMedicalRecordsFromJsonFile();
+        Optional<MedicalRecord> medicalRecordToDelete      = findByName(firstName, lastName);
+        Iterable<MedicalRecord> medicalRecordsFromJsonFile = getMedicalRecordsFromJsonFile();
 
         if (medicalRecordToDelete.isPresent()) {
-            Iterator<MedicalRecord> iterator = people.iterator();
+            Iterator<MedicalRecord> iterator = medicalRecordsFromJsonFile.iterator();
             while (iterator.hasNext()) {
                 // browse list and delete if found
                 MedicalRecord medicalRecord = iterator.next();
@@ -138,7 +146,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
                 }
             }
             // update list of medical records in JSON file
-            JsonNode medicalRecordsNode = medRecordMapper.valueToTree(people);
+            JsonNode medicalRecordsNode = medRecordMapper.valueToTree(medicalRecordsFromJsonFile);
             JsonNode rootNode           = jSonRepository.getNode("root");
             updateMedicalRecordsNode((ObjectNode) rootNode, medicalRecordsNode);
             boolean success = jSonRepository.writeJsonFile(rootNode);
@@ -153,18 +161,22 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
         } else {
             log.error("{} {}'s medical record does not exist in JSON file. ",
                       firstName, lastName);
-            throw new Exception("The medical record for " + firstName + " " + lastName + " you are trying to delete " +
-                                "does" +
-                                " not " +
-                                "exist in JSON file.");
+            throw new ResourceNotFoundException("The medical record for " + firstName + " " + lastName + " you are " +
+                                                "trying to " +
+                                                "delete " +
+                                                "does" +
+                                                " not " +
+                                                "exist in JSON file.");
         }
     }
 
     /**
      * Overwrites root node with updated list of medicalRecords.
      *
-     * @param rootNode                  Root node
-     * @param updatedMedicalRecordsNode MedicalRecords node updated
+     * @param rootNode
+     *         Root node
+     * @param updatedMedicalRecordsNode
+     *         MedicalRecords node updated
      */
     private void updateMedicalRecordsNode(ObjectNode rootNode, JsonNode updatedMedicalRecordsNode) {
         rootNode.replace("medicalrecords", updatedMedicalRecordsNode);

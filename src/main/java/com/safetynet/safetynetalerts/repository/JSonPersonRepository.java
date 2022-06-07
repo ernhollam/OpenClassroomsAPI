@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
@@ -20,11 +22,14 @@ import java.util.Optional;
 @Data
 public class JSonPersonRepository implements PersonRepository {
 
-    private final JSonRepository jSonRepository;
-    private final ObjectMapper   personMapper = new ObjectMapper();
+    private final JSonRepository              jSonRepository;
+    private final Jackson2ObjectMapperBuilder mapperBuilder;
+    private       ObjectMapper                personMapper;
 
-    public JSonPersonRepository(JSonRepository jSonRepository) {
+    public JSonPersonRepository(JSonRepository jSonRepository, Jackson2ObjectMapperBuilder mapperBuilder) {
         this.jSonRepository = jSonRepository;
+        this.mapperBuilder = mapperBuilder;
+        this.personMapper = this.mapperBuilder.build();
     }
 
 
@@ -53,27 +58,31 @@ public class JSonPersonRepository implements PersonRepository {
     /**
      * Save person into JSon file.
      *
-     * @param person Person to save
+     * @param personToSave
+     *         Person to save
      *
      * @return person saved
      */
-    public Person save(Person person) throws Exception {
+    public Person save(Person personToSave) throws Exception {
+        String firstName = personToSave.getFirstName();
+        String lastName  = personToSave.getLastName();
         // Get useful nodes
         JsonNode rootNode    = jSonRepository.getNode("root");
         JsonNode personsNode = jSonRepository.getNode("persons");
         // Transform Person object into Json node and add to persons node
-        JsonNode newPersonAsNode = personMapper.valueToTree(person);
+        JsonNode newPersonAsNode = personMapper.valueToTree(personToSave);
         ((ArrayNode) personsNode).add(newPersonAsNode);
         // Overwrite root node with new persons node
         updatePersonsNode((ObjectNode) rootNode, personsNode);
         //Write data
         boolean success = jSonRepository.writeJsonFile(rootNode);
         if (success) {
-            log.debug("Saved new person {} {}.", person.getFirstName(), person.getLastName());
-            return person;
+            log.debug("Saved new person {} {}.", firstName, lastName);
+            return personToSave;
         } else {
-            log.error("Failed to save new person {} {}.", person.getFirstName(), person.getLastName());
-            throw new Exception("Failed to save person.");
+            String saveFailedErrorMessage = "Failed to save person: " + firstName + " " + lastName + ".";
+            log.error(saveFailedErrorMessage);
+            throw new Exception(saveFailedErrorMessage);
         }
     }
 
@@ -90,8 +99,10 @@ public class JSonPersonRepository implements PersonRepository {
     /**
      * Find person with specified name.
      *
-     * @param firstName First name of person to find
-     * @param lastName  Last name of person to find
+     * @param firstName
+     *         First name of person to find
+     * @param lastName
+     *         Last name of person to find
      *
      * @return Found person
      */
@@ -106,18 +117,19 @@ public class JSonPersonRepository implements PersonRepository {
                 foundPerson = Optional.of(person);
                 log.debug("Found person: {}", foundPerson);
                 break;
-            } else {
-                log.warn("Person {} {} was not found.", firstName, lastName);
             }
         }
         return foundPerson;
     }
 
+
     /**
      * Delete person with specified name from JSon file.
      *
-     * @param firstName First name of person to delete
-     * @param lastName  Last name of person to delete
+     * @param firstName
+     *         First name of person to delete
+     * @param lastName
+     *         Last name of person to delete
      */
     @Override
     public void deleteByName(String firstName, String lastName) throws Exception {
@@ -146,18 +158,19 @@ public class JSonPersonRepository implements PersonRepository {
                 throw new Exception("Failed to update JSON file after deletion of person " + firstName + " " + lastName + ".");
             }
         } else {
-            log.error("Person {} {} does not exist in JSON file. ",
-                      firstName, lastName);
-            throw new Exception("The person (" + firstName + " " + lastName + ") you are trying to delete does not " +
-                                "exist in JSON file.");
+            String notFoundMessage = "Person " + firstName + " " + lastName + " does not exist.";
+            log.error(notFoundMessage);
+            throw new ResourceNotFoundException(notFoundMessage);
         }
     }
 
     /**
      * Overwrites root node with updated list of persons.
      *
-     * @param rootNode           Root node
-     * @param updatedPersonsNode Persons node updated
+     * @param rootNode
+     *         Root node
+     * @param updatedPersonsNode
+     *         Persons node updated
      */
     private void updatePersonsNode(ObjectNode rootNode, JsonNode updatedPersonsNode) {
         rootNode.replace("persons", updatedPersonsNode);
