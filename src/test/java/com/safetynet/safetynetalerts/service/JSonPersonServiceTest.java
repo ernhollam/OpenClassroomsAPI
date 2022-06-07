@@ -2,12 +2,17 @@ package com.safetynet.safetynetalerts.service;
 
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
+import com.safetynet.safetynetalerts.model.viewmodel.ChildAlertViewModel;
+import com.safetynet.safetynetalerts.model.viewmodel.PersonAtAddressViewModel;
+import com.safetynet.safetynetalerts.repository.JSonMedicalRecordRepository;
 import com.safetynet.safetynetalerts.repository.JSonPersonRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +31,9 @@ class JSonPersonServiceTest {
 
     @MockBean
     private JSonPersonRepository jSonPersonRepository;
+
+    @MockBean
+    private JSonMedicalRecordRepository jSonMedicalRecordRepository;
 
     @Test
     void update_shouldReturn_updatedPerson_whenPersonExists() throws Exception {
@@ -107,5 +115,47 @@ class JSonPersonServiceTest {
         // WHEN calling update()
         // THEN there must be an exception thrown
         assertThrows(ResourceNotFoundException.class, () -> jSonPersonService.updatePerson(brianStelzer));
+    }
+
+    @Test
+    void getChildAlert_shouldReturn_theRightObject() {
+        String       address     = "1509 Culver St";
+        List<String> medications = List.of("aznol:350mg", "hydrapermazol:100mg");
+        List<String> allergies   = List.of("nillacilan");
+        Person person1 = new Person("John",
+                                    "Boyd",
+                                    "1509 Culver St",
+                                    "Culver",
+                                    97451,
+                                    "841-874-6512",
+                                    "jaboyd@email.com");
+        Person person2 = new Person("Felicia",
+                                    "Boyd",
+                                    "1509 Culver St",
+                                    "Culver",
+                                    97451,
+                                    "841-874-6544",
+                                    "jaboyd@email.com");
+        PersonAtAddressViewModel person1AtAddress = new PersonAtAddressViewModel("Boyd",
+                                                                                 "841-874-6512",
+                                                                                 38,
+                                                                                 medications,
+                                                                                 allergies);
+        PersonAtAddressViewModel person2AtAddress = new PersonAtAddressViewModel("Boyd",
+                                                                                 "841-874-6544",
+                                                                                 38,
+                                                                                 medications,
+                                                                                 allergies);
+        List<Person>                   listPeople                   = List.of(person1, person2);
+        List<PersonAtAddressViewModel> listPersonAtAddressViewModel = List.of(person1AtAddress, person2AtAddress);
+        when(jSonPersonRepository.findByAddress(address)).thenReturn(listPeople);
+        when(jSonMedicalRecordRepository.getBirthDateByName(any(String.class), any(String.class))).thenReturn(LocalDate.of(1984, 10, 12));
+        when(jSonMedicalRecordRepository.getMedicationsByName(any(String.class), any(String.class))).thenReturn(medications);
+        when(jSonMedicalRecordRepository.getAllergiesByName(any(String.class), any(String.class))).thenReturn(allergies);
+
+        ChildAlertViewModel result = jSonPersonService.getChildAlert(address);
+
+        assertThat(result.getChildren()).isEqualTo(Collections.emptyList());
+        assertThat(result.getOtherHouseholdMembers()).isEqualTo(listPersonAtAddressViewModel);
     }
 }

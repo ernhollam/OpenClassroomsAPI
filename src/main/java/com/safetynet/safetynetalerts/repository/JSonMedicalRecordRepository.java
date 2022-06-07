@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -167,6 +168,69 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
                                                 "does" +
                                                 " not " +
                                                 "exist in JSON file.");
+        }
+    }
+
+    /**
+     * Gets person's birthdate.
+     *
+     * @param firstName
+     *         Person's first name.
+     * @param lastName
+     *         Person's last name.
+     *
+     * @return Person's birthdate.
+     */
+    @Override
+    public LocalDate getBirthDateByName(String firstName, String lastName) {
+        Optional<MedicalRecord> medicalRecord = findByName(firstName, lastName);
+        if (medicalRecord.isPresent()) {
+            return medicalRecord.get().getBirthdate();
+        } else {
+            String errorMessage = "Medical record for " + firstName + " " + lastName + " was not found. No birthdate" +
+                                  " returned.";
+            log.error(errorMessage);
+            throw new ResourceNotFoundException(errorMessage);
+        }
+    }
+
+    /**
+     * Gets medications for a given person identified by their name.
+     *
+     * @param firstName
+     *         Person's first name.
+     * @param lastName
+     *         Person's last name.
+     *
+     * @return List of medications.
+     */
+    @Override
+    public List<String> getMedicationsByName(String firstName, String lastName) {
+        Optional<MedicalRecord> medicalRecord = findByName(firstName, lastName);
+        if (medicalRecord.isPresent()) {
+            return medicalRecord.get().getMedications();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Gets allergies for a given person identified by their name.
+     *
+     * @param firstName
+     *         Person's first name.
+     * @param lastName
+     *         Person's last name.
+     *
+     * @return List of medications.
+     */
+    @Override
+    public List<String> getAllergiesByName(String firstName, String lastName) {
+        Optional<MedicalRecord> medicalRecord = findByName(firstName, lastName);
+        if (medicalRecord.isPresent()) {
+            return medicalRecord.get().getAllergies();
+        } else {
+            return Collections.emptyList();
         }
     }
 

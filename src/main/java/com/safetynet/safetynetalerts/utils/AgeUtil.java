@@ -10,7 +10,7 @@ import java.time.LocalDate;
  */
 public class AgeUtil {
 
-    public int getAge(LocalDate birthdate) throws IllegalValueException {
+    public static int calculateAge(LocalDate birthdate) throws IllegalValueException {
         LocalDate now = LocalDate.now();
         if (birthdate.isAfter(now)) {
             throw new IllegalValueException("birthdate", birthdate.toString());
@@ -19,7 +19,7 @@ public class AgeUtil {
         }
     }
 
-    public boolean isChild(int age) {
-        return age <= PersonConstant.AGE_OF_MAJORITY;
+    public static boolean isChild(LocalDate birthdate) {
+        return calculateAge(birthdate) <= PersonConstant.AGE_OF_MAJORITY;
     }
 }

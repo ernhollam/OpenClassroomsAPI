@@ -15,6 +15,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,13 +50,13 @@ public class MedicalRecordControllerTest {
         johnBoyd = new MedicalRecord("John",
                                      "Boyd",
                                      LocalDate.of(1984, 3, 6),
-                                     new String[]{"aznol:350mg", "hydrapermazol:100mg"},
-                                     new String[]{"nillacilan"});
+                                     List.of("aznol:350mg", "hydrapermazol:100mg"),
+                                     List.of("nillacilan"));
         feliciaBoyd = new MedicalRecord("Felicia",
                                         "Boyd",
                                         LocalDate.of(1986, 8, 1),
-                                        new String[]{"tetracyclaz:650mg"},
-                                        new String[]{"xilliathal"});
+                                        List.of("tetracyclaz:650mg"),
+                                        List.of("xilliathal"));
         listMedicalRecords = List.of(johnBoyd, feliciaBoyd);
     }
 
@@ -98,11 +99,11 @@ public class MedicalRecordControllerTest {
 
     @Test
     public void saveMedicalRecord_shouldReturn_created_whenMedicalRecordDoesNotAlreadyExist() throws Exception {
-        String    firstName   = "Kendrick";
-        String    lastName    = "Stelzer";
-        LocalDate birthdate   = LocalDate.of(2014, 3, 6);
-        String[]  medications = {"noxidian:100mg", "pharmacol:2500mg"};
-        String[]  allergies   = {};
+        String       firstName   = "Kendrick";
+        String       lastName    = "Stelzer";
+        LocalDate    birthdate   = LocalDate.of(2014, 3, 6);
+        List<String> medications = List.of("noxidian:100mg", "pharmacol:2500mg");
+        List<String> allergies   = Collections.emptyList();
         MedicalRecord medicalRecord = new MedicalRecord(firstName,
                                                         lastName,
                                                         birthdate,
@@ -144,7 +145,7 @@ public class MedicalRecordControllerTest {
 
     @Test
     public void updateMedicalRecord_shouldReturn_ok_whenMedicalRecordExists() throws Exception {
-        johnBoyd.setAllergies(new String[]{"peanut", "nillacilan"});
+        johnBoyd.setAllergies(List.of("peanut", "nillacilan"));
         when(jSonMedicalRecordService.updateMedicalRecord(johnBoyd)).thenReturn(johnBoyd);
 
         mockMvc.perform(put("/medicalRecord")
@@ -159,8 +160,8 @@ public class MedicalRecordControllerTest {
         String        firstName     = "Kendrick";
         String        lastName      = "Stelzer";
         LocalDate     birthdate     = LocalDate.of(2014, 3, 6);
-        String[]      medications   = {"noxidian:100mg", "pharmacol:2500mg"};
-        String[]      allergies     = {};
+        List<String>  medications   = List.of("noxidian:100mg", "pharmacol:2500mg");
+        List<String>  allergies     = Collections.emptyList();
         MedicalRecord medicalRecord = new MedicalRecord(firstName, lastName, birthdate, medications, allergies);
 
         when(jSonMedicalRecordService.updateMedicalRecord(any(MedicalRecord.class))).thenThrow(ResourceNotFoundException.class);

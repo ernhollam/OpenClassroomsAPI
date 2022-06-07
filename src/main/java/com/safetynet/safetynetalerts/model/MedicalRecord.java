@@ -5,20 +5,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class MedicalRecord {
 
-    private String firstName;
-    private String lastName;
-    private LocalDate birthdate;
-    private String[] medications;
-    private String[] allergies;
-
-    public boolean equals(MedicalRecord medicalRecord) {
-        return (this.getFirstName().equalsIgnoreCase(medicalRecord.getFirstName())
-                && this.getLastName().equalsIgnoreCase(medicalRecord.getLastName()));
-    }
+    private String       firstName;
+    private String       lastName;
+    private LocalDate    birthdate;
+    private List<String> medications;
+    private List<String> allergies;
 }
