@@ -39,15 +39,15 @@ class JSonFirestationRepositoryTest {
      * Property data source.
      */
     @Autowired
-    private DataPathProperties dataPathProperties;
-    private File               jsonFile;
-    private JsonNode           originalRootNode;
-    private int                nbFirestationsBeforeAnyAction;
+    private DataPathProperties          dataPathProperties;
+    private File                        jsonFile;
+    private JsonNode                    originalRootNode;
+    private int                         nbFirestationsBeforeAnyAction;
+    @Autowired
+    private Jackson2ObjectMapperBuilder mapperBuilder;
 
     @BeforeAll
     public void setUp() throws IOException {
-
-        Jackson2ObjectMapperBuilder mapperBuilder = new Jackson2ObjectMapperBuilder();
         mapper = mapperBuilder.build();
 
         JsonNode firestationsNode;

@@ -42,10 +42,11 @@ public class JSonMedicalRecordRepositoryTest {
     private File                        jsonFile;
     private JsonNode                    originalRootNode;
     private int                         nbMedicalRecordsBeforeAnyAction;
+    @Autowired
+    private Jackson2ObjectMapperBuilder mapperBuilder;
 
     @BeforeAll
     public void setUp() throws IOException {
-        Jackson2ObjectMapperBuilder mapperBuilder = new Jackson2ObjectMapperBuilder();
         mapper = mapperBuilder.build();
         JsonNode medicalRecordsNode;
         String   jsonPath = dataPathProperties.getDatasource();

@@ -38,13 +38,18 @@ public class JSonPersonRepositoryTest {
      */
     @Autowired
     private DataPathProperties   dataPathProperties;
-    private File                 jsonFile;
-    private JsonNode             originalRootNode;
-    private int                  nbPeopleBeforeAnyAction;
+    /**
+     * Object mapper builder.
+     */
+    @Autowired
+    Jackson2ObjectMapperBuilder mapperBuilder;
+
+    private File     jsonFile;
+    private JsonNode originalRootNode;
+    private int      nbPeopleBeforeAnyAction;
 
     @BeforeAll
     public void setUp() throws IOException {
-        Jackson2ObjectMapperBuilder mapperBuilder = new Jackson2ObjectMapperBuilder();
         mapper = mapperBuilder.build();
 
         JsonNode peopleNode;

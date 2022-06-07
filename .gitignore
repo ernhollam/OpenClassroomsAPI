@@ -1,10 +1,13 @@
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
+
+### User defined .gitignore
 !**/src/main/**/target/
 !**/src/test/**/target/
-src/test/resources/data_test.json
-safetynet_alerts.log
+*.json
+*.log
+*.gz
 
 ### STS ###
 .apt_generated
