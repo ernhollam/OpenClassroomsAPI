@@ -4,7 +4,7 @@ import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import com.safetynet.safetynetalerts.model.viewmodel.ChildAlertViewModel;
 import com.safetynet.safetynetalerts.model.viewmodel.ChildViewModel;
-import com.safetynet.safetynetalerts.model.viewmodel.PersonAtAddressViewModel;
+import com.safetynet.safetynetalerts.model.viewmodel.FirePersonViewModel;
 import com.safetynet.safetynetalerts.repository.MedicalRecordRepository;
 import com.safetynet.safetynetalerts.repository.PersonRepository;
 import com.safetynet.safetynetalerts.utils.AgeUtil;
@@ -14,9 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Data
 @Service
@@ -31,6 +29,9 @@ public class JSonPersonService implements PersonService {
 
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
+
+    @Autowired
+    private AgeUtil ageUtil;
 
     public JSonPersonService(PersonRepository PersonRepository) {
         this.personRepository = PersonRepository;
@@ -114,6 +115,25 @@ public class JSonPersonService implements PersonService {
         return personRepository.save(person);
     }
 
+    public Map<String, Integer> getNbChildrenAndNbAdults(List<Person> list) {
+        int                  nbChildren    = 0;
+        int                  nbAdults      = 0;
+        Map<String, Integer> familyMembers = new HashMap<>();
+        for (Person person : list) {
+            String    firstName = person.getFirstName();
+            String    lastName  = person.getLastName();
+            LocalDate birthdate = medicalRecordRepository.getBirthDateByName(firstName, lastName);
+            if (ageUtil.isChild(birthdate)) {
+                nbChildren++;
+            } else {
+                nbAdults++;
+            }
+        }
+        familyMembers.put("nb_adults", nbAdults);
+        familyMembers.put("nb_children", nbChildren);
+        return familyMembers;
+    }
+
     /**
      * Gets children living at a given address.
      *
@@ -123,26 +143,26 @@ public class JSonPersonService implements PersonService {
      * @return a list of children and other household members living at given address
      */
     public ChildAlertViewModel getChildAlert(String address) {
-        ChildAlertViewModel            result                   = new ChildAlertViewModel();
-        List<ChildViewModel>           childrenAtAddress        = new ArrayList<>();
-        List<PersonAtAddressViewModel> peopleAtAddressViewModel = new ArrayList<>();
-        List<Person>                   peopleAtAddress          = personRepository.findByAddress(address);
+        ChildAlertViewModel       result                   = new ChildAlertViewModel();
+        List<ChildViewModel>      childrenAtAddress        = new ArrayList<>();
+        List<FirePersonViewModel> peopleAtAddressViewModel = new ArrayList<>();
+        List<Person>              peopleAtAddress          = personRepository.findByAddress(address);
 
         for (Person person : peopleAtAddress) {
             String    firstName = person.getFirstName();
             String    lastName  = person.getLastName();
             LocalDate birthdate = medicalRecordRepository.getBirthDateByName(firstName, lastName);
-            int       age       = AgeUtil.calculateAge(birthdate);
-            boolean   isChild   = AgeUtil.isChild(birthdate);
+            int       age       = ageUtil.calculateAge(birthdate);
+            boolean   isChild   = ageUtil.isChild(birthdate);
 
             if (isChild) {
                 childrenAtAddress.add(new ChildViewModel(firstName, lastName, age));
             } else {
-                peopleAtAddressViewModel.add(new PersonAtAddressViewModel(person.getLastName(),
-                                                                          person.getPhone(),
-                                                                          age,
-                                                                          medicalRecordRepository.getMedicationsByName(firstName, lastName),
-                                                                          medicalRecordRepository.getAllergiesByName(firstName, lastName)));
+                peopleAtAddressViewModel.add(new FirePersonViewModel(person.getLastName(),
+                                                                     person.getPhone(),
+                                                                     age,
+                                                                     medicalRecordRepository.getMedicationsByName(firstName, lastName),
+                                                                     medicalRecordRepository.getAllergiesByName(firstName, lastName)));
             }
         }
         result.setChildren(childrenAtAddress);
