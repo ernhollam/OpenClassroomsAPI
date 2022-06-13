@@ -1,10 +1,13 @@
 package com.safetynet.safetynetalerts.service;
 
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
+import com.safetynet.safetynetalerts.model.Firestation;
 import com.safetynet.safetynetalerts.model.Person;
 import com.safetynet.safetynetalerts.model.viewmodel.ChildAlertViewModel;
 import com.safetynet.safetynetalerts.model.viewmodel.ChildViewModel;
 import com.safetynet.safetynetalerts.model.viewmodel.FirePersonViewModel;
+import com.safetynet.safetynetalerts.model.viewmodel.FireViewModel;
+import com.safetynet.safetynetalerts.repository.FirestationRepository;
 import com.safetynet.safetynetalerts.repository.MedicalRecordRepository;
 import com.safetynet.safetynetalerts.repository.PersonRepository;
 import com.safetynet.safetynetalerts.utils.AgeUtil;
@@ -29,6 +32,9 @@ public class JSonPersonService implements PersonService {
 
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
+
+    @Autowired
+    private FirestationRepository firestationRepository;
 
     @Autowired
     private AgeUtil ageUtil;
@@ -168,5 +174,40 @@ public class JSonPersonService implements PersonService {
         result.setChildren(childrenAtAddress);
         result.setOtherHouseholdMembers(peopleAtAddressViewModel);
         return result;
+    }
+
+    /**
+     * Returns a list of people living at a given address, as well as the station number covering the house.
+     *
+     * @param address
+     *         Address where to find people.
+     *
+     * @return a list of people living at address and the fire station which covers the address.
+     */
+    public FireViewModel getFirePeople(String address) {
+        int                   stationNumber;
+        Optional<Firestation> firestation = firestationRepository.findByAddress(address);
+
+        if (firestation.isEmpty()) {
+            throw new ResourceNotFoundException("There is no fire station covering this address: " + address);
+        } else {
+            stationNumber = firestation.get().getStation();
+        }
+
+        List<FirePersonViewModel> firePeople      = new ArrayList<>();
+        List<Person>              peopleAtAddress = personRepository.findByAddress(address);
+        for (Person person : peopleAtAddress) {
+            String firstName = person.getFirstName();
+            String lastName  = person.getLastName();
+            FirePersonViewModel firePerson = new FirePersonViewModel(firstName,
+                                                                     person.getPhone(),
+                                                                     ageUtil.calculateAge(medicalRecordRepository.getBirthDateByName(firstName, lastName)),
+                                                                     medicalRecordRepository.getMedicationsByName(firstName, lastName),
+                                                                     medicalRecordRepository.getAllergiesByName(firstName, lastName));
+            if (!firePeople.contains(firePerson)) {
+                firePeople.add(firePerson);
+            }
+        }
+        return new FireViewModel(firePeople, stationNumber);
     }
 }

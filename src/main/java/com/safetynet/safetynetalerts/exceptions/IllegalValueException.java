@@ -4,12 +4,10 @@ public class IllegalValueException extends RuntimeException {
     /**
      * Resource not found exception constructor.
      *
-     * @param name
-     *         Name of illegal data
-     * @param value
-     *         Value of illegal data
+     * @param message
+     *         Error message
      */
-    public IllegalValueException(String name, String value) {
-        super("Illegal value (" + value + ") for data " + name);
+    public IllegalValueException(String message) {
+        super(message);
     }
 }

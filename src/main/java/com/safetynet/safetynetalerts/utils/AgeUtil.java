@@ -17,11 +17,15 @@ public final class AgeUtil {
     private Clock clock;
 
     public int calculateAge(LocalDate birthdate) throws IllegalValueException {
-        LocalDate now = LocalDate.now(clock);
-        if (birthdate.isAfter(now)) {
-            throw new IllegalValueException("birthdate", birthdate.toString());
+        if (birthdate == null) {
+            throw new IllegalValueException("Birthdate can not be empty");
         } else {
-            return now.getYear() - birthdate.getYear();
+            LocalDate now = LocalDate.now(clock);
+            if (birthdate.isAfter(now)) {
+                throw new IllegalValueException("Birthdate " + birthdate + "is in the future");
+            } else {
+                return now.getYear() - birthdate.getYear();
+            }
         }
     }
 
