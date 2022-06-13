@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.safetynet.safetynetalerts.configuration.DataPathConfiguration;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import org.junit.jupiter.api.AfterEach;
@@ -39,7 +40,7 @@ public class JSonMedicalRecordRepositoryTest {
      * Property data source.
      */
     @Autowired
-    private DataPathProperties          dataPathProperties;
+    private DataPathConfiguration       dataPathConfiguration;
     private File                        jsonFile;
     private JsonNode                    originalRootNode;
     private int                         nbMedicalRecordsBeforeAnyAction;
@@ -50,7 +51,7 @@ public class JSonMedicalRecordRepositoryTest {
     public void setUp() throws IOException {
         mapper = mapperBuilder.build();
         JsonNode medicalRecordsNode;
-        String   jsonPath = dataPathProperties.getDatasource();
+        String   jsonPath = dataPathConfiguration.getDatasource();
         jsonFile = new File(jsonPath);
         try {
             originalRootNode = mapper.readTree(jsonFile);

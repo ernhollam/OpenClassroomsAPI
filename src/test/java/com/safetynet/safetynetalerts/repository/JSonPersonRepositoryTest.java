@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.safetynet.safetynetalerts.configuration.DataPathConfiguration;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import org.junit.jupiter.api.AfterEach;
@@ -34,28 +35,28 @@ public class JSonPersonRepositoryTest {
      */
     @Autowired
     Jackson2ObjectMapperBuilder mapperBuilder;
-    private ObjectMapper         mapper;
+    private ObjectMapper          mapper;
     /**
      * Class under test.
      */
     @Autowired
-    private JSonPersonRepository jsonPersonRepository;
+    private JSonPersonRepository  jsonPersonRepository;
     /**
      * Property data source.
      */
     @Autowired
-    private DataPathProperties   dataPathProperties;
-    private File                 jsonFile;
-    private JsonNode             originalRootNode;
-    private int                  nbPeopleBeforeAnyAction;
-    private List<Person>         originalPeople;
+    private DataPathConfiguration dataPathConfiguration;
+    private File                  jsonFile;
+    private JsonNode              originalRootNode;
+    private int                   nbPeopleBeforeAnyAction;
+    private List<Person>          originalPeople;
 
     @BeforeAll
     public void setUp() throws IOException {
         mapper = mapperBuilder.build();
 
         JsonNode peopleNode;
-        String   jsonPath = dataPathProperties.getDatasource();
+        String   jsonPath = dataPathConfiguration.getDatasource();
         jsonFile = new File(jsonPath);
         try {
             originalRootNode = mapper.readTree(jsonFile);

@@ -3,6 +3,7 @@ package com.safetynet.safetynetalerts.repository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.safetynet.safetynetalerts.configuration.DataPathConfiguration;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -18,7 +19,7 @@ public class JSonRepository {
     /**
      * Property object with path to data source.
      */
-    private final DataPathProperties          dataPathProperties;
+    private final DataPathConfiguration       dataPathConfiguration;
     /**
      * Path to JSON file.
      */
@@ -36,15 +37,15 @@ public class JSonRepository {
     /**
      * JSonRepository constructor
      *
-     * @param dataPathProperties
+     * @param dataPathConfiguration
      *         Path to application properties
      * @param mapperBuilder
      *         Mapper builder
      */
 
-    public JSonRepository(DataPathProperties dataPathProperties, Jackson2ObjectMapperBuilder mapperBuilder) {
-        this.dataPathProperties = dataPathProperties;
-        this.datasource = dataPathProperties.getDatasource();
+    public JSonRepository(DataPathConfiguration dataPathConfiguration, Jackson2ObjectMapperBuilder mapperBuilder) {
+        this.dataPathConfiguration = dataPathConfiguration;
+        this.datasource = dataPathConfiguration.getDatasource();
         this.mapperBuilder = mapperBuilder;
         this.jsonFile = new File(datasource);
         mapper = mapperBuilder.build();
