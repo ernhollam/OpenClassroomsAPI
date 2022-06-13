@@ -144,4 +144,11 @@ public class FirestationControllerTest {
                .andDo(print())
                .andExpect(status().isNotFound());
     }
+
+    @Test
+    void getPeopleCoveredByStation() throws Exception {
+        mockMvc.perform(get("/firestation?stationNumber=3"))
+               .andDo(print())
+               .andExpect(status().isOk());
+    }
 }
