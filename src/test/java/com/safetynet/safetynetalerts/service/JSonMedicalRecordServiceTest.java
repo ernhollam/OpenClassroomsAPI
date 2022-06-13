@@ -95,4 +95,6 @@ class JSonMedicalRecordServiceTest {
         // THEN there must be an exception thrown
         assertThrows(ResourceNotFoundException.class, () -> jSonMedicalRecordService.updateMedicalRecord(brianStelzer));
     }
+
+    //TODO deleteMedicalRecord test
 }

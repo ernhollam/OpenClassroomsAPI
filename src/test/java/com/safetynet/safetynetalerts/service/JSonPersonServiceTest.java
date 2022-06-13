@@ -136,6 +136,7 @@ class JSonPersonServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> jSonPersonService.updatePerson(brianStelzer));
     }
 
+    // TODO deletePerson test
 
     @Test
     void getNbChildrenAndNbAdults_shouldFind_oneChildAndTwoAdults() {
