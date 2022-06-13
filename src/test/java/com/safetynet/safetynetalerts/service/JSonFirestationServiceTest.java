@@ -145,13 +145,45 @@ class JSonFirestationServiceTest {
     void deleteFirestation() {
     }
 
-    //TODO getPhoneAlert() tests
+
     @Test
     void getPhoneAlert_shouldReturn_aListOfPhoneNumbers() {
+
+        Person person1 = new Person("John",
+                                    "Boyd",
+                                    "1509 Culver St",
+                                    "Culver",
+                                    97451,
+                                    "841-874-6512",
+                                    "jaboyd@email.com");
+        Person person2 = new Person("Felicia",
+                                    "Boyd",
+                                    "1509 Culver St",
+                                    "Culver",
+                                    97451,
+                                    "841-874-6544",
+                                    "jaboyd@email.com");
+        Person person3 = new Person("Tenley",
+                                    "Boyd",
+                                    "1509 Culver St",
+                                    "Culver",
+                                    97451,
+                                    "841-874-6512",
+                                    "tenz@email.com");
+        int               stationNumber = 1;
+        String            address       = "test address";
+        List<Firestation> firestations  = List.of(new Firestation(address, stationNumber));
+        List<Person>      people        = List.of(person1, person2, person3);
+        when(jSonFirestationRepository.findByStationNumber(stationNumber)).thenReturn(firestations);
+        when(jSonPersonRepository.findByAddress(address)).thenReturn(people);
+        when(jSonMedicalRecordRepository.getBirthDateByName(any(String.class), any(String.class))).thenReturn(LocalDate.of(1998, 7, 12));
+
+        List<String> phoneNumbers         = jSonFirestationService.getPhoneAlert(stationNumber);
+        List<String> expectedPhoneNumbers = List.of("841-874-6512", "841-874-6544");
+
+        assertThat(phoneNumbers).isEqualTo(expectedPhoneNumbers);
+        assertThat(phoneNumbers.size()).isEqualTo(2);
+
     }
 
-    @Test
-    void getPhoneAlert_shouldReturn_emptyList() {
-
-    }
 }
