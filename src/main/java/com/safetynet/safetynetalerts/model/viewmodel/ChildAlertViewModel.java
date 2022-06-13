@@ -10,6 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChildAlertViewModel {
-    private List<ChildViewModel>           children;
-    private List<PersonAtAddressViewModel> otherHouseholdMembers;
+    private List<ChildViewModel>      children;
+    private List<FirePersonViewModel> otherHouseholdMembers;
 }

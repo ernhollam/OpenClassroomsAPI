@@ -10,6 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FloodViewModel {
-    List<String>                   households;
-    List<PersonAtAddressViewModel> peopleInTheHousehold;
+    List<String>              households;
+    List<FirePersonViewModel> peopleInTheHousehold;
 }

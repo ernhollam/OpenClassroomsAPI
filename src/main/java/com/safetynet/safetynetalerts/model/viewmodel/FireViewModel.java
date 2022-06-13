@@ -10,6 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FireViewModel {
-    private List<PersonAtAddressViewModel> peopleAtAddress;
-    private int                            stationNumber;
+    private List<FirePersonViewModel> peopleAtAddress;
+    private int                       stationNumber;
 }

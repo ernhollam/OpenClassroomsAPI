@@ -215,7 +215,7 @@ public class JSonMedicalRecordRepositoryTest {
         List<String> medications = jSonMedicalRecordRepository.getMedicationsByName(firstName,
                                                                                     lastName);
         //THEN
-        assertEquals(medications, expectedMedications);
+        assertThat(medications).isEqualTo(expectedMedications);
     }
 
     @Test

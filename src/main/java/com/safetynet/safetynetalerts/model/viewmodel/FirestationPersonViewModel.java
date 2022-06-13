@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StationNumberPersonViewModel {
+public class FirestationPersonViewModel {
     private String firstName;
     private String lastName;
     private String address;

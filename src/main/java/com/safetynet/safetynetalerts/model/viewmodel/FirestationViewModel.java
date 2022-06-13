@@ -9,10 +9,8 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PersonAtAddressViewModel {
-    private String       lastName;
-    private String       phone;
-    private int          age;
-    private List<String> medications;
-    private List<String> allergies;
+public class FirestationViewModel {
+    private List<FirestationPersonViewModel> people;
+    private int                              nbAdults;
+    private int                              nbChildren;
 }

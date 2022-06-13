@@ -1,6 +1,7 @@
 package com.safetynet.safetynetalerts.service;
 
 import com.safetynet.safetynetalerts.model.Firestation;
+import com.safetynet.safetynetalerts.model.viewmodel.FirestationViewModel;
 
 import java.util.List;
 
@@ -50,4 +51,6 @@ public interface FirestationService {
      *         Firestation to update
      */
     Firestation updateFirestation(final Firestation firestation) throws Exception;
+
+    FirestationViewModel getPeopleCoveredByStation(int stationNumber);
 }
