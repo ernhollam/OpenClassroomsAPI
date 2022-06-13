@@ -1,5 +1,6 @@
 package com.safetynet.safetynetalerts.model.viewmodel;
 
+import com.safetynet.safetynetalerts.model.Person;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,4 +17,5 @@ public class PersonInfoViewModel {
     private String       email;
     private List<String> medications;
     private List<String> allergies;
+    private List<Person> peopleWithSameName;
 }

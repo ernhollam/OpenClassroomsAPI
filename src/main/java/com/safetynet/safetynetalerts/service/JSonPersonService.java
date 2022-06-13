@@ -3,10 +3,7 @@ package com.safetynet.safetynetalerts.service;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
 import com.safetynet.safetynetalerts.model.Person;
-import com.safetynet.safetynetalerts.model.viewmodel.ChildAlertViewModel;
-import com.safetynet.safetynetalerts.model.viewmodel.ChildViewModel;
-import com.safetynet.safetynetalerts.model.viewmodel.FirePersonViewModel;
-import com.safetynet.safetynetalerts.model.viewmodel.FireViewModel;
+import com.safetynet.safetynetalerts.model.viewmodel.*;
 import com.safetynet.safetynetalerts.repository.FirestationRepository;
 import com.safetynet.safetynetalerts.repository.MedicalRecordRepository;
 import com.safetynet.safetynetalerts.repository.PersonRepository;
@@ -18,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 @Service
@@ -209,5 +207,45 @@ public class JSonPersonService implements PersonService {
             }
         }
         return new FireViewModel(firePeople, stationNumber);
+    }
+
+    /**
+     * Returns information about given person and people with the same name.
+     *
+     * @param firstName
+     *         Person's first name.
+     * @param lastName
+     *         Person's last name
+     *
+     * @return Information about the person and a list of people with same name.
+     */
+    public PersonInfoViewModel getPersonInfo(String firstName, String lastName) {
+        Optional<Person> person = personRepository.findByName(firstName, lastName);
+
+        PersonInfoViewModel personInfoViewModel = new PersonInfoViewModel();
+
+        if (person.isEmpty()) {
+            throw new ResourceNotFoundException("Person " + firstName + " " + lastName + " does not exist.");
+        } else {
+            Person foundPerson    = person.get();
+            String foundFirstName = foundPerson.getFirstName();
+            String foundLastName  = foundPerson.getLastName();
+
+            List<Person> allPeople = personRepository.findAll();
+            List<Person> peopleWithSameName = allPeople.stream()
+                                                       .filter(p -> p.getLastName().equalsIgnoreCase(foundLastName))
+                                                       .collect(Collectors.toList());
+            personInfoViewModel.setPeopleWithSameName(peopleWithSameName);
+
+            personInfoViewModel.setLastName(foundLastName);
+            personInfoViewModel.setAddress(foundPerson.getAddress());
+            personInfoViewModel.setAge(ageUtil.calculateAge(medicalRecordRepository.getBirthDateByName(foundFirstName,
+                                                                                                       foundLastName)));
+            personInfoViewModel.setEmail(foundPerson.getEmail());
+            personInfoViewModel.setMedications(medicalRecordRepository.getMedicationsByName(foundFirstName,
+                                                                                            foundLastName));
+            personInfoViewModel.setAllergies(medicalRecordRepository.getAllergiesByName(foundFirstName, foundLastName));
+        }
+        return personInfoViewModel;
     }
 }

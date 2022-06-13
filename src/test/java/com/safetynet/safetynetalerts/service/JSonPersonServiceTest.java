@@ -341,4 +341,9 @@ class JSonPersonServiceTest {
 
         assertThrows(ResourceNotFoundException.class, () -> jSonPersonService.getFirePeople("address"));
     }
+
+    //TODO getPersonInfo() tests
+    @Test
+    void getPersonInfo() {
+    }
 }
