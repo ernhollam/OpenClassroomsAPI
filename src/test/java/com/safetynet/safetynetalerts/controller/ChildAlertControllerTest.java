@@ -20,7 +20,8 @@ class ChildAlertControllerTest {
 
     @Test
     void getChildAlert() throws Exception {
-        mockMvc.perform(get("/childAlert?address=1509 Culver St"))
+        mockMvc.perform(get("/childAlert")
+                                .param("address", "1509 Culver St"))
                .andDo(print())
                .andExpect(status().isOk());
     }

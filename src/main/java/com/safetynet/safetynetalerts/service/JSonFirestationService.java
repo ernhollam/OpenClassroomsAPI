@@ -11,10 +11,7 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Data
 @Service
@@ -152,13 +149,11 @@ public class JSonFirestationService implements FirestationService {
      *
      * @return List of phone numbers.
      */
-    public List<String> getPhoneAlert(int stationNumber) {
-        List<String>                     phoneNumbers  = new ArrayList<>();
+    public Set<String> getPhoneAlert(int stationNumber) {
+        Set<String>                      phoneNumbers  = new HashSet<>();
         List<FirestationPersonViewModel> coveredPeople = getPeopleCoveredByStation(stationNumber).getPeople();
         for (FirestationPersonViewModel firestationPerson : coveredPeople) {
-            if (!phoneNumbers.contains(firestationPerson.getPhone())) {
-                phoneNumbers.add(firestationPerson.getPhone());
-            }
+            phoneNumbers.add(firestationPerson.getPhone());
         }
         return phoneNumbers;
     }

@@ -1,6 +1,6 @@
 package com.safetynet.safetynetalerts.controller;
 
-import com.safetynet.safetynetalerts.service.JSonFirestationService;
+import com.safetynet.safetynetalerts.service.JSonPersonService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -11,20 +11,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(PhoneAlertController.class)
-class PhoneAlertControllerTest {
-
+@WebMvcTest(CommunityEmailController.class)
+class CommunityEmailControllerTest {
     @Autowired
-    private MockMvc                mockMvc;
+    private MockMvc           mockMvc;
     @MockBean
-    private JSonFirestationService jSonFirestationService;
+    private JSonPersonService jSonPersonService;
 
     @Test
-    void getPeopleCoveredByStation() throws Exception {
-        mockMvc.perform(get("/phoneAlert")
-                                .param("firestation", "3"))
+    void getCommunityEmail() throws Exception {
+
+        mockMvc.perform(get("/communityEmail")
+                                .param("city", "Culver"))
                .andDo(print())
                .andExpect(status().isOk());
     }
-
 }

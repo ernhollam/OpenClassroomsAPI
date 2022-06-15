@@ -3,10 +3,7 @@ package com.safetynet.safetynetalerts.service;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
 import com.safetynet.safetynetalerts.model.Person;
-import com.safetynet.safetynetalerts.model.viewmodel.ChildAlertViewModel;
-import com.safetynet.safetynetalerts.model.viewmodel.ChildViewModel;
-import com.safetynet.safetynetalerts.model.viewmodel.FirePersonViewModel;
-import com.safetynet.safetynetalerts.model.viewmodel.FireViewModel;
+import com.safetynet.safetynetalerts.model.viewmodel.*;
 import com.safetynet.safetynetalerts.repository.JSonFirestationRepository;
 import com.safetynet.safetynetalerts.repository.JSonMedicalRecordRepository;
 import com.safetynet.safetynetalerts.repository.JSonPersonRepository;
@@ -21,10 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -55,6 +49,7 @@ class JSonPersonServiceTest {
     private Person       person3;
     private List<String> medications;
     private List<String> allergies;
+    private List<Person> people;
 
     @BeforeAll
     public void setUp() {
@@ -83,6 +78,8 @@ class JSonPersonServiceTest {
                              "841-874-6512",
                              "tenz@email.com");
 
+
+        people = List.of(person1, person2, person3);
 
         when(jSonMedicalRecordRepository.getMedicationsByName(any(String.class), any(String.class))).thenReturn(medications);
         when(jSonMedicalRecordRepository.getAllergiesByName(any(String.class), any(String.class))).thenReturn(allergies);
@@ -326,7 +323,6 @@ class JSonPersonServiceTest {
         when(jSonFirestationRepository.findByAddress(any(String.class))).thenReturn(Optional.of(new Firestation(
                 "address", stationNumber)));
 
-        List<Person> people = List.of(person1, person2, person3);
         when(jSonPersonRepository.findByAddress(address)).thenReturn(people);
 
         FireViewModel result = jSonPersonService.getFirePeople(address);
@@ -342,8 +338,45 @@ class JSonPersonServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> jSonPersonService.getFirePeople("address"));
     }
 
-    //TODO getPersonInfo() tests
     @Test
-    void getPersonInfo() {
+    void getPersonInfo_shouldReturn_PersonInfo() {
+        String firstName = person1.getFirstName();
+        String lastName  = person1.getLastName();
+        when(jSonPersonRepository.findByName(firstName, lastName)).thenReturn(Optional.of(person1));
+        when(jSonPersonRepository.findAll()).thenReturn(people);
+        when(jSonMedicalRecordRepository.getBirthDateByName(firstName, lastName)).thenReturn(LocalDate.of(1984, 3, 6));
+        when(jSonMedicalRecordRepository.getMedicationsByName(firstName, lastName)).thenReturn(medications);
+        when(jSonMedicalRecordRepository.getAllergiesByName(firstName, lastName)).thenReturn(allergies);
+
+        PersonInfoViewModel result = jSonPersonService.getPersonInfo(person1.getFirstName(),
+                                                                     person1.getLastName());
+        List<Person> peopleWithSameName = List.of(person2, person3);
+
+        assertThat(result.getLastName()).isEqualTo(lastName);
+        assertThat(result.getAddress()).isEqualTo(person1.getAddress());
+        assertThat(result.getAge()).isEqualTo(38);
+        assertThat(result.getEmail()).isEqualTo(person1.getEmail());
+        assertThat(result.getMedications()).isEqualTo(medications);
+        assertThat(result.getAllergies()).isEqualTo(allergies);
+        assertThat(result.getPeopleWithSameName()).isEqualTo(peopleWithSameName);
+    }
+
+    @Test
+    void getPersonInfo_shouldThrow_ResourceNotFoundException() {
+        when(jSonPersonRepository.findByName(person1.getFirstName(), person1.getLastName())).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> jSonPersonService.getPersonInfo(person1.getFirstName(),
+                                                                                            person1.getLastName()));
+    }
+
+    @Test
+    void getCommunityEmail_shouldReturn_expectedListOfEmails_withoutDuplicates() {
+        String      city           = "Culver";
+        Set<String> expectedEmails = Set.of(person1.getEmail(), person3.getEmail());
+        when(jSonPersonRepository.findByCity(city)).thenReturn(people);
+
+        Set<String> communityEmails = jSonPersonService.getCommunityEmail(city);
+
+        assertThat(communityEmails).isEqualTo(expectedEmails);
     }
 }

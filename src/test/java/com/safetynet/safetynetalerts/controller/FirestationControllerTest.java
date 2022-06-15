@@ -54,7 +54,7 @@ public class FirestationControllerTest {
     @Test
     public void getFirestations_shouldReturn_ListOfAllFirestations() throws Exception {
         when(jSonFirestationService.getFirestations()).thenReturn(listFirestations);
-        mockMvc.perform(get("/firestation"))
+        mockMvc.perform(get("/firestations"))
                .andDo(print())
                .andExpect(status().isOk())
                .andExpect(jsonPath("$", hasSize(2)))
@@ -147,7 +147,8 @@ public class FirestationControllerTest {
 
     @Test
     void getPeopleCoveredByStation() throws Exception {
-        mockMvc.perform(get("/firestation?stationNumber=3"))
+        mockMvc.perform(get("/firestation")
+                                .param("stationNumber", "3"))
                .andDo(print())
                .andExpect(status().isOk());
     }

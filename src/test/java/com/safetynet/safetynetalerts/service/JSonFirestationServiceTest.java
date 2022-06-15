@@ -16,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -178,8 +179,8 @@ class JSonFirestationServiceTest {
         when(jSonPersonRepository.findByAddress(address)).thenReturn(people);
         when(jSonMedicalRecordRepository.getBirthDateByName(any(String.class), any(String.class))).thenReturn(LocalDate.of(1998, 7, 12));
 
-        List<String> phoneNumbers         = jSonFirestationService.getPhoneAlert(stationNumber);
-        List<String> expectedPhoneNumbers = List.of("841-874-6512", "841-874-6544");
+        Set<String> phoneNumbers         = jSonFirestationService.getPhoneAlert(stationNumber);
+        Set<String> expectedPhoneNumbers = Set.of("841-874-6512", "841-874-6544");
 
         assertThat(phoneNumbers).isEqualTo(expectedPhoneNumbers);
         assertThat(phoneNumbers.size()).isEqualTo(2);

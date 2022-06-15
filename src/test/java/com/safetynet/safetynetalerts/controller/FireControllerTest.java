@@ -21,7 +21,8 @@ class FireControllerTest {
 
     @Test
     void getFirePeople() throws Exception {
-        mockMvc.perform(get("/fire?address=1509 Culver St"))
+        mockMvc.perform(get("/fire")
+                                .param("address", "1509 Culver St"))
                .andDo(print())
                .andExpect(status().isOk());
     }

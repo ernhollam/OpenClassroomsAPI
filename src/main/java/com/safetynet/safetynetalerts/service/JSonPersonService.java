@@ -192,19 +192,17 @@ public class JSonPersonService implements PersonService {
             stationNumber = firestation.get().getStation();
         }
 
-        List<FirePersonViewModel> firePeople      = new ArrayList<>();
-        List<Person>              peopleAtAddress = personRepository.findByAddress(address);
+        Set<FirePersonViewModel> firePeople      = new HashSet<>();
+        List<Person>             peopleAtAddress = personRepository.findByAddress(address);
         for (Person person : peopleAtAddress) {
             String firstName = person.getFirstName();
             String lastName  = person.getLastName();
-            FirePersonViewModel firePerson = new FirePersonViewModel(firstName,
+            FirePersonViewModel firePerson = new FirePersonViewModel(lastName,
                                                                      person.getPhone(),
                                                                      ageUtil.calculateAge(medicalRecordRepository.getBirthDateByName(firstName, lastName)),
                                                                      medicalRecordRepository.getMedicationsByName(firstName, lastName),
                                                                      medicalRecordRepository.getAllergiesByName(firstName, lastName));
-            if (!firePeople.contains(firePerson)) {
                 firePeople.add(firePerson);
-            }
         }
         return new FireViewModel(firePeople, stationNumber);
     }
@@ -233,7 +231,7 @@ public class JSonPersonService implements PersonService {
 
             List<Person> allPeople = personRepository.findAll();
             List<Person> peopleWithSameName = allPeople.stream()
-                                                       .filter(p -> p.getLastName().equalsIgnoreCase(foundLastName))
+                                                       .filter(p -> p.getLastName().equalsIgnoreCase(foundLastName) && !(p.getFirstName().equalsIgnoreCase(foundFirstName)))
                                                        .collect(Collectors.toList());
             personInfoViewModel.setPeopleWithSameName(peopleWithSameName);
 
@@ -247,5 +245,14 @@ public class JSonPersonService implements PersonService {
             personInfoViewModel.setAllergies(medicalRecordRepository.getAllergiesByName(foundFirstName, foundLastName));
         }
         return personInfoViewModel;
+    }
+
+    /**
+     * Returns a list of all email addresses of people living in a city.
+     */
+    public Set<String> getCommunityEmail(String city) {
+        List<Person> peopleInCity = personRepository.findByCity(city);
+        return peopleInCity.stream()
+                           .map(Person :: getEmail).collect(Collectors.toSet());
     }
 }

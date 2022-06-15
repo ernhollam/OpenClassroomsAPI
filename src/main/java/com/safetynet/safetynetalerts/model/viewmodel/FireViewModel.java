@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class FireViewModel {
-    private List<FirePersonViewModel> peopleAtAddress;
-    private int                       stationNumber;
+    private Set<FirePersonViewModel> peopleAtAddress;
+    private int                      stationNumber;
 }
