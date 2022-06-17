@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.safetynet.safetynetalerts.configuration.DataPathConfiguration;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
@@ -12,14 +11,10 @@ import org.springframework.stereotype.Repository;
 import java.io.File;
 import java.io.IOException;
 
-@Data
+
 @Slf4j
 @Repository
 public class JSonRepository {
-    /**
-     * Property object with path to data source.
-     */
-    private final DataPathConfiguration       dataPathConfiguration;
     /**
      * Path to JSON file.
      */
@@ -28,11 +23,10 @@ public class JSonRepository {
      * JSON file.
      */
     private final File                        jsonFile;
-    private final Jackson2ObjectMapperBuilder mapperBuilder;
     /**
      * Object mapper.
      */
-    private       ObjectMapper                mapper;
+    private final ObjectMapper                mapper;
 
     /**
      * JSonRepository constructor
@@ -44,9 +38,7 @@ public class JSonRepository {
      */
 
     public JSonRepository(DataPathConfiguration dataPathConfiguration, Jackson2ObjectMapperBuilder mapperBuilder) {
-        this.dataPathConfiguration = dataPathConfiguration;
         this.datasource = dataPathConfiguration.getDatasource();
-        this.mapperBuilder = mapperBuilder;
         this.jsonFile = new File(datasource);
         mapper = mapperBuilder.build();
     }

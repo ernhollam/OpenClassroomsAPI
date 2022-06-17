@@ -18,8 +18,8 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AgeUtilTest {
-    private final static LocalDate LOCAL_DATE_NOW = LocalDate.of(2022, 6, 13);
+public class AgeUtilTest {
+    public final static LocalDate LOCAL_DATE_NOW = LocalDate.of(2022, 6, 13);
 
     @Autowired
     private AgeUtil ageUtil;
@@ -44,9 +44,14 @@ class AgeUtilTest {
     }
 
     @Test
-    void calculateAge_shouldThrow_IllegalValueException() {
+    void calculateAge_shouldThrow_IllegalValueException_whenBirthdateIsInTheFuture() {
         LocalDate birthdate = LocalDate.of(2025, 12, 25);
         assertThrows(IllegalValueException.class, () -> ageUtil.calculateAge(birthdate));
+    }
+
+    @Test
+    void calculateAge_shouldThrow_IllegalValueException_whenBirthdateIsNull() {
+        assertThrows(IllegalValueException.class, () -> ageUtil.calculateAge(null));
     }
 
     @Test
@@ -58,7 +63,7 @@ class AgeUtilTest {
 
     @Test
     void isChild_shouldReturn_true() {
-        LocalDate birthdate = LocalDate.now();
+        LocalDate birthdate = LocalDate.now(clock);
         boolean   isChild   = ageUtil.isChild(birthdate);
         assertTrue(isChild);
     }

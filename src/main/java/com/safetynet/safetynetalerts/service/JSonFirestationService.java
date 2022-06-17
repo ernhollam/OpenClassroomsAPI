@@ -3,17 +3,19 @@ package com.safetynet.safetynetalerts.service;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
 import com.safetynet.safetynetalerts.model.Person;
+import com.safetynet.safetynetalerts.model.viewmodel.FirePersonViewModel;
 import com.safetynet.safetynetalerts.model.viewmodel.FirestationPersonViewModel;
 import com.safetynet.safetynetalerts.model.viewmodel.FirestationViewModel;
+import com.safetynet.safetynetalerts.model.viewmodel.FloodViewModel;
 import com.safetynet.safetynetalerts.repository.FirestationRepository;
 import com.safetynet.safetynetalerts.repository.PersonRepository;
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-@Data
+
 @Service
 public class JSonFirestationService implements FirestationService {
 
@@ -55,12 +57,12 @@ public class JSonFirestationService implements FirestationService {
     /**
      * Deletes firestation with given station number.
      *
-     * @param stationNumber
+     * @param address
      *         ID of firestation to delete
      */
     @Override
-    public void deleteFirestation(final int stationNumber) throws Exception {
-        firestationRepository.deleteByStationNumber(stationNumber);
+    public void deleteFirestation(final String address) throws Exception {
+        firestationRepository.deleteByAddress(address);
     }
 
     /**
@@ -149,6 +151,7 @@ public class JSonFirestationService implements FirestationService {
      *
      * @return List of phone numbers.
      */
+    @Override
     public Set<String> getPhoneAlert(int stationNumber) {
         Set<String>                      phoneNumbers  = new HashSet<>();
         List<FirestationPersonViewModel> coveredPeople = getPeopleCoveredByStation(stationNumber).getPeople();
@@ -156,5 +159,33 @@ public class JSonFirestationService implements FirestationService {
             phoneNumbers.add(firestationPerson.getPhone());
         }
         return phoneNumbers;
+    }
+
+    /**
+     * Returns list of households covered by a station. The list contains the name of each person living in the
+     * household, including medical record.
+     *
+     * @param stationNumber
+     *         Station number for which list of covered households is wanted.
+     *
+     * @return List of households and their inhabitants.
+     */
+    @Override
+    public FloodViewModel getCoveredHouseholds(int stationNumber) {
+        // find addresses covered by fire station
+        List<Firestation> firestations = firestationRepository.findByStationNumber(stationNumber);
+        List<String> households = firestations.stream()
+                                              .map(Firestation :: getAddress).collect(Collectors.toList());
+        // browse addresses and collect people living at these addresses as FirePersonViewModel
+        Map<String, List<FirePersonViewModel>> coveredHouseholds = new HashMap<>();
+        for (String household : households) {
+            List<FirePersonViewModel> firePeopleInHousehold = new ArrayList<>();
+            List<Person>              peopleInHousehold     = personRepository.findByAddress(household);
+            for (Person person : peopleInHousehold) {
+                firePeopleInHousehold.add(jSonPersonService.personToFirePerson(person));
+            }
+            coveredHouseholds.put(household, firePeopleInHousehold);
+        }
+        return new FloodViewModel(coveredHouseholds);
     }
 }

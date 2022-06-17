@@ -17,7 +17,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -27,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@WebMvcTest(FirestationController.class) // instantiate FirestationController only for this test
+@WebMvcTest({FirestationController.class, FirestationsController.class})
 public class FirestationControllerTest {
     @Autowired
     private MockMvc                mockMvc;
@@ -57,9 +56,7 @@ public class FirestationControllerTest {
         mockMvc.perform(get("/firestations"))
                .andDo(print())
                .andExpect(status().isOk())
-               .andExpect(jsonPath("$", hasSize(2)))
-               .andExpect(jsonPath("$[0].address", is("18 rue des fontaines")))
-               .andExpect(jsonPath("$[1].address", is("159 boulevard charles de gaulle")));
+               .andExpect(jsonPath("$", hasSize(2)));
     }
 
 
@@ -102,20 +99,20 @@ public class FirestationControllerTest {
 
     @Test
     public void deleteFirestation_shouldReturn_noContent_whenFirestationExists() throws Exception {
-        int station = 1;
+        String address = "892 Downing Ct";
 
-        mockMvc.perform(delete("/firestation/{stationNumber}", station))
+        mockMvc.perform(delete("/firestation/{address}", address))
                .andDo(print())
                .andExpect(status().isNoContent());
     }
 
     @Test
     public void deleteFirestation_shouldReturn_notFound_whenFirestationDoesNotExist() throws Exception {
-        int station = 150;
+        String address = "rue des bois";
 
-        doThrow(ResourceNotFoundException.class).when(jSonFirestationService).deleteFirestation(any(int.class));
+        doThrow(ResourceNotFoundException.class).when(jSonFirestationService).deleteFirestation(any(String.class));
 
-        mockMvc.perform(delete("/firestation/{stationNumber}", station))
+        mockMvc.perform(delete("/firestation/{stationNumber}", address))
                .andDo(print())
                .andExpect(status().isNotFound());
     }

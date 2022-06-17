@@ -8,7 +8,6 @@ import com.safetynet.safetynetalerts.repository.FirestationRepository;
 import com.safetynet.safetynetalerts.repository.MedicalRecordRepository;
 import com.safetynet.safetynetalerts.repository.PersonRepository;
 import com.safetynet.safetynetalerts.utils.AgeUtil;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Data
+
 @Service
 @Slf4j
 public class JSonPersonService implements PersonService {
@@ -138,6 +137,7 @@ public class JSonPersonService implements PersonService {
         return familyMembers;
     }
 
+
     /**
      * Gets children living at a given address.
      *
@@ -146,11 +146,12 @@ public class JSonPersonService implements PersonService {
      *
      * @return a list of children and other household members living at given address
      */
+    @Override
     public ChildAlertViewModel getChildAlert(String address) {
-        ChildAlertViewModel       result                   = new ChildAlertViewModel();
-        List<ChildViewModel>      childrenAtAddress        = new ArrayList<>();
-        List<FirePersonViewModel> peopleAtAddressViewModel = new ArrayList<>();
-        List<Person>              peopleAtAddress          = personRepository.findByAddress(address);
+        ChildAlertViewModel       result               = new ChildAlertViewModel();
+        List<ChildViewModel>      childrenAtAddress    = new ArrayList<>();
+        List<FirePersonViewModel> firePersonViewModels = new ArrayList<>();
+        List<Person>              peopleAtAddress      = personRepository.findByAddress(address);
 
         for (Person person : peopleAtAddress) {
             String    firstName = person.getFirstName();
@@ -162,15 +163,11 @@ public class JSonPersonService implements PersonService {
             if (isChild) {
                 childrenAtAddress.add(new ChildViewModel(firstName, lastName, age));
             } else {
-                peopleAtAddressViewModel.add(new FirePersonViewModel(person.getLastName(),
-                                                                     person.getPhone(),
-                                                                     age,
-                                                                     medicalRecordRepository.getMedicationsByName(firstName, lastName),
-                                                                     medicalRecordRepository.getAllergiesByName(firstName, lastName)));
+                firePersonViewModels.add(personToFirePerson(person));
             }
         }
         result.setChildren(childrenAtAddress);
-        result.setOtherHouseholdMembers(peopleAtAddressViewModel);
+        result.setOtherHouseholdMembers(firePersonViewModels);
         return result;
     }
 
@@ -182,6 +179,7 @@ public class JSonPersonService implements PersonService {
      *
      * @return a list of people living at address and the fire station which covers the address.
      */
+    @Override
     public FireViewModel getFirePeople(String address) {
         int                   stationNumber;
         Optional<Firestation> firestation = firestationRepository.findByAddress(address);
@@ -192,18 +190,12 @@ public class JSonPersonService implements PersonService {
             stationNumber = firestation.get().getStation();
         }
 
-        Set<FirePersonViewModel> firePeople      = new HashSet<>();
         List<Person>             peopleAtAddress = personRepository.findByAddress(address);
+        Set<FirePersonViewModel> firePeople      = new HashSet<>(peopleAtAddress.size());
         for (Person person : peopleAtAddress) {
-            String firstName = person.getFirstName();
-            String lastName  = person.getLastName();
-            FirePersonViewModel firePerson = new FirePersonViewModel(lastName,
-                                                                     person.getPhone(),
-                                                                     ageUtil.calculateAge(medicalRecordRepository.getBirthDateByName(firstName, lastName)),
-                                                                     medicalRecordRepository.getMedicationsByName(firstName, lastName),
-                                                                     medicalRecordRepository.getAllergiesByName(firstName, lastName));
-                firePeople.add(firePerson);
+            firePeople.add(personToFirePerson(person));
         }
+
         return new FireViewModel(firePeople, stationNumber);
     }
 
@@ -217,6 +209,7 @@ public class JSonPersonService implements PersonService {
      *
      * @return Information about the person and a list of people with same name.
      */
+    @Override
     public PersonInfoViewModel getPersonInfo(String firstName, String lastName) {
         Optional<Person> person = personRepository.findByName(firstName, lastName);
 
@@ -250,9 +243,29 @@ public class JSonPersonService implements PersonService {
     /**
      * Returns a list of all email addresses of people living in a city.
      */
+    @Override
     public Set<String> getCommunityEmail(String city) {
         List<Person> peopleInCity = personRepository.findByCity(city);
         return peopleInCity.stream()
                            .map(Person :: getEmail).collect(Collectors.toSet());
+    }
+
+    /**
+     * Transforms a Person into a FirePerson
+     *
+     * @param person
+     *         Person
+     *
+     * @return FirePerson
+     */
+    public FirePersonViewModel personToFirePerson(Person person) {
+        String firstName = person.getFirstName();
+        String lastName  = person.getLastName();
+        return new FirePersonViewModel(lastName,
+                                       person.getPhone(),
+                                       ageUtil.calculateAge(medicalRecordRepository.getBirthDateByName(firstName,
+                                                                                                       lastName)),
+                                       medicalRecordRepository.getMedicationsByName(firstName, lastName),
+                                       medicalRecordRepository.getAllergiesByName(firstName, lastName));
     }
 }

@@ -17,11 +17,6 @@ public class FirestationController {
     private JSonFirestationService jSonFirestationService;
 
 
-    @GetMapping("s")
-    public List<Firestation> getFirestations() {
-        return jSonFirestationService.getFirestations();
-    }
-
     @GetMapping("/{stationNumber}")
     public List<Firestation> getFirestation(@PathVariable int stationNumber) {
         return jSonFirestationService.getFirestation(stationNumber);
@@ -43,9 +38,9 @@ public class FirestationController {
         return jSonFirestationService.updateFirestation(firestation);
     }
 
-    @DeleteMapping("/{stationNumber}")
+    @DeleteMapping("/{address}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteFirestation(@PathVariable int stationNumber) throws Exception {
-        jSonFirestationService.deleteFirestation(stationNumber);
+    public void deleteFirestation(@PathVariable String address) throws Exception {
+        jSonFirestationService.deleteFirestation(address);
     }
 }

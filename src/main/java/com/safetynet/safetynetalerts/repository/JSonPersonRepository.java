@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
@@ -19,12 +19,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
-@Data
+@Getter
 public class JSonPersonRepository implements PersonRepository {
 
     private final JSonRepository              jSonRepository;
     private final Jackson2ObjectMapperBuilder mapperBuilder;
-    private       ObjectMapper                personMapper;
+    private final ObjectMapper                personMapper;
 
     public JSonPersonRepository(JSonRepository jSonRepository, Jackson2ObjectMapperBuilder mapperBuilder) {
         this.jSonRepository = jSonRepository;

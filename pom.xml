@@ -48,9 +48,6 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <excludes>
-                        <exclude>**/*IntTest.java</exclude>
-                    </excludes>
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
@@ -70,13 +67,12 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
                     <includes>
-                        <include>**/*IntTest.java</include>
+                        <include>**/*Test.java</include>
                     </includes>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>integration-test</goal>
                             <goal>verify</goal>
                         </goals>
                     </execution>
@@ -156,7 +152,7 @@
             <artifactId>spotbugs-annotations</artifactId>
             <groupId>com.github.spotbugs</groupId>
             <scope>compile</scope>
-            <version>RELEASE</version>
+            <version>4.6.0</version>
         </dependency>
     </dependencies>
 
@@ -177,6 +173,7 @@
         <relativePath />
         <version>2.6.6</version> <!-- lookup parent from repository -->
     </parent>
+
     <reporting>
         <plugins>
             <plugin>
@@ -216,16 +213,6 @@
                     </reportSet>
                 </reportSets>
                 <version>3.0.0-M5</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <groupId>org.apache.maven.plugins</groupId>
-                <version>3.1.2</version>
-            </plugin>
-            <plugin>
-                <artifactId>spotbugs-maven-plugin</artifactId>
-                <groupId>com.github.spotbugs</groupId>
-                <version>4.5.3.0</version>
             </plugin>
         </plugins>
     </reporting>

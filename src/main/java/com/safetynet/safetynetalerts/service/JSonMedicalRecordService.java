@@ -3,14 +3,12 @@ package com.safetynet.safetynetalerts.service;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import com.safetynet.safetynetalerts.repository.MedicalRecordRepository;
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-@Data
 @Service
 public class JSonMedicalRecordService implements MedicalRecordService {
 
