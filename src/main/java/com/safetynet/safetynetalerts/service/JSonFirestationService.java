@@ -9,6 +9,7 @@ import com.safetynet.safetynetalerts.model.viewmodel.FirestationViewModel;
 import com.safetynet.safetynetalerts.model.viewmodel.FloodViewModel;
 import com.safetynet.safetynetalerts.repository.FirestationRepository;
 import com.safetynet.safetynetalerts.repository.PersonRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 
 @Service
+@Slf4j
 public class JSonFirestationService implements FirestationService {
 
     /**
@@ -30,6 +32,24 @@ public class JSonFirestationService implements FirestationService {
 
     @Autowired
     private JSonPersonService jSonPersonService;
+
+    /**
+     * Saves new firestation.
+     *
+     * @param firestation
+     *         Firestation to save
+     *
+     * @return Firestation
+     */
+    @Override
+    public Firestation saveFirestation(final Firestation firestation) throws Exception {
+        String                address   = firestation.getAddress();
+        Optional<Firestation> duplicate = firestationRepository.findByAddress(address);
+        if (duplicate.isPresent()) {
+            firestationRepository.deleteByAddress(address);
+        }
+        return firestationRepository.save(firestation);
+    }
 
     /**
      * Returns a list of fire stations with given station number.
@@ -54,34 +74,6 @@ public class JSonFirestationService implements FirestationService {
         return firestationRepository.findAll();
     }
 
-    /**
-     * Deletes firestation with given station number.
-     *
-     * @param address
-     *         ID of firestation to delete
-     */
-    @Override
-    public void deleteFirestation(final String address) throws Exception {
-        firestationRepository.deleteByAddress(address);
-    }
-
-    /**
-     * Saves new firestation.
-     *
-     * @param firestation
-     *         Firestation to save
-     *
-     * @return Firestation
-     */
-    @Override
-    public Firestation saveFirestation(final Firestation firestation) throws Exception {
-        String                address   = firestation.getAddress();
-        Optional<Firestation> duplicate = firestationRepository.findByAddress(address);
-        if (duplicate.isPresent()) {
-            firestationRepository.deleteByAddress(address);
-        }
-        return firestationRepository.save(firestation);
-    }
 
     /**
      * Updates firestation with given station number.
@@ -95,11 +87,26 @@ public class JSonFirestationService implements FirestationService {
         Optional<Firestation> firestationInDataSource =
                 firestationRepository.findByAddress(address);
         if (firestationInDataSource.isEmpty()) {
-            throw new ResourceNotFoundException("There is no fire station at the following address: " + address + ".");
+            String errorMessage = "There is no fire station at the following address: " + address + ".";
+            log.error(errorMessage);
+            throw new ResourceNotFoundException(errorMessage);
         } else {
+            log.info("Updated firestation {}.", firestation);
             return saveFirestation(firestation);
         }
     }
+
+    /**
+     * Deletes firestation with given station number.
+     *
+     * @param address
+     *         ID of firestation to delete
+     */
+    @Override
+    public void deleteFirestation(final String address) throws Exception {
+        firestationRepository.deleteByAddress(address);
+    }
+
 
     /**
      * Returns people at addresses covered by a fire station.
@@ -140,6 +147,8 @@ public class JSonFirestationService implements FirestationService {
         result.setNbAdults(nbFamilyMembers.get("nb_adults"));
         result.setNbChildren(nbFamilyMembers.get("nb_children"));
 
+        log.debug("The following people are covered by station number {}:\n{}", stationNumber, firestationPeople);
+
         return result;
     }
 
@@ -158,6 +167,7 @@ public class JSonFirestationService implements FirestationService {
         for (FirestationPersonViewModel firestationPerson : coveredPeople) {
             phoneNumbers.add(firestationPerson.getPhone());
         }
+        log.debug("List of phone numbers covered by station number {}:\n{}", stationNumber, phoneNumbers);
         return phoneNumbers;
     }
 
@@ -186,6 +196,10 @@ public class JSonFirestationService implements FirestationService {
             }
             coveredHouseholds.put(household, firePeopleInHousehold);
         }
+
+        log.debug("The following households and their members are covered by station number {}:\n{}", stationNumber,
+                  coveredHouseholds);
+
         return new FloodViewModel(coveredHouseholds);
     }
 }

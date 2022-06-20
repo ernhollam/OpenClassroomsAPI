@@ -43,7 +43,7 @@ public class JSonPersonRepository implements PersonRepository {
         final JsonNode personsNode = jSonRepository.getNode("persons");
 
         if (personsNode.isEmpty()) {
-            log.error("No people exist in JSON file.");
+            log.error("No people found.");
             return Collections.emptyList();
         } else {
             List<Person> people = personMapper.
@@ -78,7 +78,7 @@ public class JSonPersonRepository implements PersonRepository {
         //Write data
         boolean success = jSonRepository.writeData(rootNode);
         if (success) {
-            log.debug("Saved new person {} {}.", firstName, lastName);
+            log.info("Saved new person {} {}.", firstName, lastName);
             return personToSave;
         } else {
             String saveFailedErrorMessage = "Failed to save person: " + firstName + " " + lastName + ".";
@@ -101,10 +101,12 @@ public class JSonPersonRepository implements PersonRepository {
     @Override
     public Optional<Person> findByName(String firstName, String lastName) {
         List<Person> people = findAll();
-        return people.stream()
-                     .filter(person -> (person.getFirstName().equalsIgnoreCase(firstName)
-                                        && person.getLastName().equalsIgnoreCase(lastName)))
-                     .findFirst();
+        Optional<Person> foundPerson = people.stream()
+                                             .filter(person -> (person.getFirstName().equalsIgnoreCase(firstName)
+                                                                && person.getLastName().equalsIgnoreCase(lastName)))
+                                             .findFirst();
+        log.debug("Found person {} with first name {} and last name {}.", foundPerson, firstName, lastName);
+        return foundPerson;
     }
 
     /**
@@ -118,9 +120,11 @@ public class JSonPersonRepository implements PersonRepository {
     @Override
     public List<Person> findByAddress(String address) {
         List<Person> people = findAll();
-        return people.stream()
-                     .filter(person -> person.getAddress().equalsIgnoreCase(address))
-                     .collect(Collectors.toList());
+        List<Person> foundPeople = people.stream()
+                                         .filter(person -> person.getAddress().equalsIgnoreCase(address))
+                                         .collect(Collectors.toList());
+        log.debug("The following people are living at address {}:\n {}.", address, foundPeople);
+        return foundPeople;
     }
 
     /**
@@ -134,9 +138,11 @@ public class JSonPersonRepository implements PersonRepository {
     @Override
     public List<Person> findByCity(String city) {
         List<Person> persons = findAll();
-        return persons.stream()
-                      .filter(person -> person.getCity().equalsIgnoreCase(city))
-                      .collect(Collectors.toList());
+        List<Person> foundPeople = persons.stream()
+                                          .filter(person -> person.getCity().equalsIgnoreCase(city))
+                                          .collect(Collectors.toList());
+        log.debug("The following people are living in city {}:\n {}", city, foundPeople);
+        return foundPeople;
     }
 
     /**
@@ -160,7 +166,7 @@ public class JSonPersonRepository implements PersonRepository {
             updatePersonsNode((ObjectNode) rootNode, personsNode);
             boolean success = jSonRepository.writeData(rootNode);
             if (success) {
-                log.debug("Deleted person: {} {}", firstName, lastName);
+                log.info("Deleted person: {} {}", firstName, lastName);
             } else {
                 log.error("Error when updating JSON file after deletion of Person {} {}",
                           firstName, lastName);

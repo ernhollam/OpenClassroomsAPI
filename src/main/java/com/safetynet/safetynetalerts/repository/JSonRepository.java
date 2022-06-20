@@ -78,6 +78,7 @@ public class JSonRepository {
         log.debug("Writing data {} into JSON file {}", rootNode, jsonFile);
         try {
             mapper.writeValue(jsonFile, rootNode);
+            log.debug("Data {} was successfully written.", rootNode);
             return true;
         } catch (IOException ioException) {
             log.error("Failed to write data {} into file {}: {}",

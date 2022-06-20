@@ -3,6 +3,7 @@ package com.safetynet.safetynetalerts.service;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import com.safetynet.safetynetalerts.repository.MedicalRecordRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class JSonMedicalRecordService implements MedicalRecordService {
 
     /**
@@ -17,6 +19,25 @@ public class JSonMedicalRecordService implements MedicalRecordService {
      */
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
+
+    /**
+     * Save medicalRecord.
+     *
+     * @param medicalRecord
+     *         MedicalRecord to save
+     *
+     * @return MedicalRecord
+     */
+    @Override
+    public MedicalRecord saveMedicalRecord(final MedicalRecord medicalRecord) throws Exception {
+        String                  firstName = medicalRecord.getFirstName();
+        String                  lastName  = medicalRecord.getLastName();
+        Optional<MedicalRecord> duplicate = medicalRecordRepository.findByName(firstName, lastName);
+        if (duplicate.isPresent()) {
+            medicalRecordRepository.deleteByName(firstName, lastName);
+        }
+        return medicalRecordRepository.save(medicalRecord);
+    }
 
     /**
      * Get medicalRecord.
@@ -44,38 +65,6 @@ public class JSonMedicalRecordService implements MedicalRecordService {
     }
 
     /**
-     * Delete medicalRecord with given id.
-     *
-     * @param firstName
-     *         Person's first name in medical record to delete
-     * @param lastName
-     *         Person's last name in medical record to delete
-     */
-    @Override
-    public void deleteMedicalRecord(final String firstName, final String lastName) throws Exception {
-        medicalRecordRepository.deleteByName(firstName, lastName);
-    }
-
-    /**
-     * Save medicalRecord.
-     *
-     * @param medicalRecord
-     *         MedicalRecord to save
-     *
-     * @return MedicalRecord
-     */
-    @Override
-    public MedicalRecord saveMedicalRecord(final MedicalRecord medicalRecord) throws Exception {
-        String                  firstName = medicalRecord.getFirstName();
-        String                  lastName  = medicalRecord.getLastName();
-        Optional<MedicalRecord> duplicate = medicalRecordRepository.findByName(firstName, lastName);
-        if (duplicate.isPresent()) {
-            medicalRecordRepository.deleteByName(firstName, lastName);
-        }
-        return medicalRecordRepository.save(medicalRecord);
-    }
-
-    /**
      * Update medical record with given name.
      *
      * @param medicalRecord
@@ -88,10 +77,26 @@ public class JSonMedicalRecordService implements MedicalRecordService {
 
         Optional<MedicalRecord> medicalRecordInDataSource = medicalRecordRepository.findByName(firstName, lastName);
         if (medicalRecordInDataSource.isEmpty()) {
-            throw new ResourceNotFoundException("The medical record for " + firstName + " " + lastName + " does not " +
-                                                "exist.");
+            String errorMessage = "The medical record for " + firstName + " " + lastName + " does not " +
+                                  "exist.";
+            log.error(errorMessage);
+            throw new ResourceNotFoundException(errorMessage);
         } else {
             return saveMedicalRecord(medicalRecord);
         }
     }
+
+    /**
+     * Delete medicalRecord with given id.
+     *
+     * @param firstName
+     *         Person's first name in medical record to delete
+     * @param lastName
+     *         Person's last name in medical record to delete
+     */
+    @Override
+    public void deleteMedicalRecord(final String firstName, final String lastName) throws Exception {
+        medicalRecordRepository.deleteByName(firstName, lastName);
+    }
+
 }

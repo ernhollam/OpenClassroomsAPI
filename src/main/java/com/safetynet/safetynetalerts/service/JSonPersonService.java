@@ -41,66 +41,7 @@ public class JSonPersonService implements PersonService {
     }
 
     /**
-     * Get person.
-     *
-     * @param firstName
-     *         Person's first name
-     * @param lastName
-     *         Person's last name
-     *
-     * @return Person a person if not empty
-     */
-    @Override
-    public Optional<Person> getPersonByName(final String firstName, final String lastName) {
-        return personRepository.findByName(firstName, lastName);
-    }
-
-    /**
-     * Get the list of all persons.
-     *
-     * @return an iterable of Persons
-     */
-    @Override
-    public List<Person> getPersons() {
-        return personRepository.findAll();
-    }
-
-    /**
-     * Delete person with given name.
-     *
-     * @param firstName
-     *         First name of person to delete
-     * @param lastName
-     *         Last name of person to delete
-     */
-    @Override
-    public void deletePerson(final String firstName, final String lastName) throws Exception {
-        personRepository.deleteByName(firstName, lastName);
-    }
-
-    /**
-     * Update person with given name.
-     *
-     * @param person
-     *         Person to update
-     */
-    @Override
-    public Person updatePerson(final Person person) throws Exception {
-        String firstName = person.getFirstName();
-        String lastName  = person.getLastName();
-
-        Optional<Person> personInDataSource = personRepository.findByName(firstName, lastName);
-        if (personInDataSource.isEmpty()) {
-            String notFoundMessage = "Person " + firstName + " " + lastName + " does not exist.";
-            log.error(notFoundMessage);
-            throw new ResourceNotFoundException(notFoundMessage);
-        } else {
-            return savePerson(person);
-        }
-    }
-
-    /**
-     * Save person.
+     * Saves person.
      *
      * @param person
      *         Person to save
@@ -116,6 +57,66 @@ public class JSonPersonService implements PersonService {
             personRepository.deleteByName(firstName, lastName);
         }
         return personRepository.save(person);
+    }
+
+    /**
+     * Finds person with specified names.
+     *
+     * @param firstName
+     *         Person's first name
+     * @param lastName
+     *         Person's last name
+     *
+     * @return Person a person if not empty
+     */
+    @Override
+    public Optional<Person> getPersonByName(final String firstName, final String lastName) {
+        return personRepository.findByName(firstName, lastName);
+    }
+
+    /**
+     * Returns the list of all persons.
+     *
+     * @return an iterable of Persons
+     */
+    @Override
+    public List<Person> getPersons() {
+        return personRepository.findAll();
+    }
+
+    /**
+     * Updates person with given name.
+     *
+     * @param person
+     *         Person to update
+     */
+    @Override
+    public Person updatePerson(final Person person) throws Exception {
+        String firstName = person.getFirstName();
+        String lastName  = person.getLastName();
+
+        Optional<Person> personInDataSource = personRepository.findByName(firstName, lastName);
+        if (personInDataSource.isEmpty()) {
+            String notFoundMessage = "Person " + firstName + " " + lastName + " does not exist.";
+            log.error(notFoundMessage);
+            throw new ResourceNotFoundException(notFoundMessage);
+        } else {
+            log.info("Updated person {}.", person);
+            return savePerson(person);
+        }
+    }
+
+    /**
+     * Deletes person with given name.
+     *
+     * @param firstName
+     *         First name of person to delete
+     * @param lastName
+     *         Last name of person to delete
+     */
+    @Override
+    public void deletePerson(final String firstName, final String lastName) throws Exception {
+        personRepository.deleteByName(firstName, lastName);
     }
 
     public Map<String, Integer> getNbChildrenAndNbAdults(List<Person> list) {
@@ -134,12 +135,15 @@ public class JSonPersonService implements PersonService {
         }
         familyMembers.put("nb_adults", nbAdults);
         familyMembers.put("nb_children", nbChildren);
+
+        log.debug("There are {} children and {} adults in the following list:\n{}", nbChildren, nbAdults, list);
+
         return familyMembers;
     }
 
 
     /**
-     * Gets children living at a given address.
+     * Returns list of children living at a given address.
      *
      * @param address
      *         Address where to find children.
@@ -148,10 +152,10 @@ public class JSonPersonService implements PersonService {
      */
     @Override
     public ChildAlertViewModel getChildAlert(String address) {
-        ChildAlertViewModel       result               = new ChildAlertViewModel();
-        List<ChildViewModel>      childrenAtAddress    = new ArrayList<>();
-        List<FirePersonViewModel> firePersonViewModels = new ArrayList<>();
-        List<Person>              peopleAtAddress      = personRepository.findByAddress(address);
+        ChildAlertViewModel       result            = new ChildAlertViewModel();
+        List<ChildViewModel>      childrenAtAddress = new ArrayList<>();
+        List<FirePersonViewModel> firePeople        = new ArrayList<>();
+        List<Person>              peopleAtAddress   = personRepository.findByAddress(address);
 
         for (Person person : peopleAtAddress) {
             String    firstName = person.getFirstName();
@@ -163,11 +167,15 @@ public class JSonPersonService implements PersonService {
             if (isChild) {
                 childrenAtAddress.add(new ChildViewModel(firstName, lastName, age));
             } else {
-                firePersonViewModels.add(personToFirePerson(person));
+                firePeople.add(personToFirePerson(person));
             }
         }
         result.setChildren(childrenAtAddress);
-        result.setOtherHouseholdMembers(firePersonViewModels);
+        result.setOtherHouseholdMembers(firePeople);
+
+        log.debug("The following children are living at address {}:\n{}\nAdults living in the household are:\n{}",
+                  address, childrenAtAddress, firePeople);
+
         return result;
     }
 
@@ -185,7 +193,9 @@ public class JSonPersonService implements PersonService {
         Optional<Firestation> firestation = firestationRepository.findByAddress(address);
 
         if (firestation.isEmpty()) {
-            throw new ResourceNotFoundException("There is no fire station covering this address: " + address);
+            String errorMessage = "There is no fire station covering this address: " + address + ".";
+            log.error(errorMessage);
+            throw new ResourceNotFoundException(errorMessage);
         } else {
             stationNumber = firestation.get().getStation();
         }
@@ -195,6 +205,9 @@ public class JSonPersonService implements PersonService {
         for (Person person : peopleAtAddress) {
             firePeople.add(personToFirePerson(person));
         }
+
+        log.debug("The following people are living at address {}:\n{}\nFire station covering them is station " +
+                  "number {}.", address, firePeople, stationNumber);
 
         return new FireViewModel(firePeople, stationNumber);
     }
@@ -216,7 +229,9 @@ public class JSonPersonService implements PersonService {
         PersonInfoViewModel personInfoViewModel = new PersonInfoViewModel();
 
         if (person.isEmpty()) {
-            throw new ResourceNotFoundException("Person " + firstName + " " + lastName + " does not exist.");
+            String errorMessage = "Person " + firstName + " " + lastName + " does not exist.";
+            log.error(errorMessage);
+            throw new ResourceNotFoundException(errorMessage);
         } else {
             Person foundPerson    = person.get();
             String foundFirstName = foundPerson.getFirstName();
@@ -236,7 +251,11 @@ public class JSonPersonService implements PersonService {
             personInfoViewModel.setMedications(medicalRecordRepository.getMedicationsByName(foundFirstName,
                                                                                             foundLastName));
             personInfoViewModel.setAllergies(medicalRecordRepository.getAllergiesByName(foundFirstName, foundLastName));
+
+            log.debug("Information about {} {}:\n{}", firstName, lastName, personInfoViewModel);
+
         }
+
         return personInfoViewModel;
     }
 
@@ -246,8 +265,10 @@ public class JSonPersonService implements PersonService {
     @Override
     public Set<String> getCommunityEmail(String city) {
         List<Person> peopleInCity = personRepository.findByCity(city);
-        return peopleInCity.stream()
-                           .map(Person :: getEmail).collect(Collectors.toSet());
+        Set<String> emails = peopleInCity.stream()
+                                         .map(Person :: getEmail).collect(Collectors.toSet());
+        log.debug("List of email addresses of people living in {}:\n{}", city, emails);
+        return emails;
     }
 
     /**
