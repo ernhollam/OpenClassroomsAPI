@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
@@ -19,19 +18,19 @@ import java.util.Optional;
 
 @Repository
 @Slf4j
-@Getter
 public class JSonMedicalRecordRepository implements MedicalRecordRepository {
 
-    private final JSonRepository              jSonRepository;
-    private final ObjectMapper                medRecordMapper;
-    private final Jackson2ObjectMapperBuilder mapperBuilder;
+    private final JSonRepository jSonRepository;
+    private final ObjectMapper   medRecordMapper;
 
     public JSonMedicalRecordRepository(JSonRepository jSonRepository, Jackson2ObjectMapperBuilder mapperBuilder) {
         this.jSonRepository = jSonRepository;
-        this.mapperBuilder = mapperBuilder;
-        this.medRecordMapper = this.mapperBuilder.build();
+        this.medRecordMapper = mapperBuilder.build();
     }
 
+    public JSonRepository getjSonRepository() {
+        return jSonRepository;
+    }
 
     /**
      * Reads Json file and returns a list of medical records.
@@ -44,7 +43,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
         final JsonNode medRecordsNode = jSonRepository.getNode("medicalrecords");
 
         if (medRecordsNode.isEmpty()) {
-            log.error("No medical records found.");
+            log.warn("No medical records found.");
             return Collections.emptyList();
         } else {
             List<MedicalRecord> medicalRecords = medRecordMapper.
@@ -76,15 +75,9 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
         // Overwrite root node with new medicalrecords node
         updateMedicalRecordsNode((ObjectNode) rootNode, medRecordsNode);
         //Write data
-        boolean success = jSonRepository.writeData(rootNode);
-        if (success) {
-            log.info("Saved new medicalRecord {} {}.", medicalRecord.getFirstName(), medicalRecord.getLastName());
-            return medicalRecord;
-        } else {
-            log.error("Failed to save new medicalRecord {} {}.", medicalRecord.getFirstName(),
-                      medicalRecord.getLastName());
-            throw new Exception("Failed to save medicalRecord.");
-        }
+        jSonRepository.writeData(rootNode);
+        log.info("Saved new medicalRecord {} {}.", medicalRecord.getFirstName(), medicalRecord.getLastName());
+        return medicalRecord;
     }
 
 
@@ -119,7 +112,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
      *         Last name of medicalRecord to delete
      */
     @Override
-    public void deleteByName(String firstName, String lastName) throws Exception {
+    public void deleteByName(String firstName, String lastName) {
         Optional<MedicalRecord> medicalRecordToDelete = findByName(firstName, lastName);
         List<MedicalRecord>     medicalRecords        = findAll();
 
@@ -129,15 +122,8 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
             JsonNode medicalRecordsNode = medRecordMapper.valueToTree(medicalRecords);
             JsonNode rootNode           = jSonRepository.getNode("root");
             updateMedicalRecordsNode((ObjectNode) rootNode, medicalRecordsNode);
-            boolean success = jSonRepository.writeData(rootNode);
-            if (success) {
-                log.info("Deleted {} {}'s medical record", firstName, lastName);
-            } else {
-                log.error("Error when updating JSON file after deletion of {} {}'s medical record",
-                          firstName, lastName);
-                throw new Exception("Failed to update JSON file after deletion of " + firstName + " " + lastName +
-                                    "'s medical record.'");
-            }
+            jSonRepository.writeData(rootNode);
+            log.info("Deleted {} {}'s medical record", firstName, lastName);
         } else {
             log.error("{} {}'s medical record does not exist in JSON file. ",
                       firstName, lastName);

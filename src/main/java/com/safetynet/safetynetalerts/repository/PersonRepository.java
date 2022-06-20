@@ -45,7 +45,7 @@ public interface PersonRepository {
      * @param lastName
      *         Last name of person to delete
      */
-    void deleteByName(String firstName, String lastName) throws Exception;
+    void deleteByName(String firstName, String lastName);
 
     /**
      * Get list of all persons.

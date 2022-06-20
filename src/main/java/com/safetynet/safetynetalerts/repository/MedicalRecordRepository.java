@@ -20,10 +20,12 @@ public interface MedicalRecordRepository {
     /**
      * Delete medical record with specified id.
      *
-     * @param firstName First name of medical record to delete
-     * @param lastName  Last name of medical record to delete
+     * @param firstName
+     *         First name of medical record to delete
+     * @param lastName
+     *         Last name of medical record to delete
      */
-    void deleteByName(String firstName, String lastName) throws Exception;
+    void deleteByName(String firstName, String lastName);
 
     /**
      * Get list of all medical records.

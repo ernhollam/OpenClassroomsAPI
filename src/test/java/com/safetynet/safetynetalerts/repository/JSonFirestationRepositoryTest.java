@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.safetynet.safetynetalerts.configuration.DataPathConfiguration;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
@@ -23,6 +24,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -83,6 +85,18 @@ class JSonFirestationRepositoryTest {
     }
 
     @Test
+    public void findAll_shouldReturn_EmptyList_WhenNodeIsEmpty() throws IOException {
+        // GIVEN a file with no medical records
+        ObjectNode updatedRootNode = originalRootNode.deepCopy();
+        updatedRootNode.remove("firestations");
+        mapper.writeValue(jsonFile, updatedRootNode);
+        // WHEN calling findAll()
+        List<Firestation> foundStations = jSonFirestationRepository.findAll();
+        //THEN there must be six persons in the test file
+        assertTrue(foundStations.isEmpty());
+    }
+
+    @Test
     void save_shouldAddNewFirestationInFile() throws Exception {
         //GIVEN a firestation with complete data to add to the list
         String      address       = "644 Gershwin Cir";
@@ -93,7 +107,7 @@ class JSonFirestationRepositoryTest {
         jSonFirestationRepository.save(firestation);
 
         //THEN
-        final JsonNode firestationsNode = jSonFirestationRepository.getJSonRepository().getNode("firestations");
+        final JsonNode firestationsNode = jSonFirestationRepository.getjSonRepository().getNode("firestations");
         List<Firestation> actualPeople = mapper.
                 convertValue(firestationsNode,
                              new TypeReference<>() {
@@ -165,7 +179,7 @@ class JSonFirestationRepositoryTest {
     }
 
     @Test
-    void deleteByAddress_shouldDeleteStation() throws Exception {
+    void deleteByAddress_shouldDeleteStation() {
         String address = "489 Manchester St";
 
         jSonFirestationRepository.deleteByAddress(address);
@@ -175,7 +189,7 @@ class JSonFirestationRepositoryTest {
     }
 
     @Test
-    void deleteByAddress_shouldDelete_OneFirestationFromFile() throws Exception {
+    void deleteByAddress_shouldDelete_OneFirestationFromFile() {
         String address = "489 Manchester St";
 
         jSonFirestationRepository.deleteByAddress(address);
@@ -186,7 +200,7 @@ class JSonFirestationRepositoryTest {
     }
 
     @Test
-    void deleteByStationNumber_shouldDeleteThreeFirestations() throws Exception {
+    void deleteByStationNumber_shouldDeleteThreeFirestations() {
         //GIVEN an existing firestation in the test data source
         int               station              = 2;
         List<Firestation> existingFirestations = jSonFirestationRepository.findByStationNumber(station);
@@ -201,7 +215,7 @@ class JSonFirestationRepositoryTest {
     }
 
     @Test
-    void deleteByStationNumber_shouldDeleteOneFireStation() throws Exception {
+    void deleteByStationNumber_shouldDeleteOneFireStation() {
         //GIVEN an existing firestation in the test data source
         int               station              = 4;
         List<Firestation> existingFirestations = jSonFirestationRepository.findByStationNumber(station);

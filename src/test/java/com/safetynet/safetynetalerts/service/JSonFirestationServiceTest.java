@@ -181,10 +181,6 @@ class JSonFirestationServiceTest {
         assertThat(result.getNbChildren()).isEqualTo(1);
     }
 
-    // TODO deleteFirestation() test
-    @Test
-    void deleteFirestation() {
-    }
 
 
     @Test

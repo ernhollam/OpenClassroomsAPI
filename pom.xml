@@ -88,6 +88,7 @@
                         <exclude>**/model/*</exclude>
                         <exclude>**/viewmodel/*</exclude>
                         <exclude>**/configuration/*</exclude>
+                        <exclude>**/exceptions/*</exclude>
                     </excludes>
                 </configuration>
                 <executions>
@@ -189,6 +190,7 @@
                         <exclude>**/model/*</exclude>
                         <exclude>**/viewmodel/*</exclude>
                         <exclude>**/configuration/*</exclude>
+                        <exclude>**/exceptions/*</exclude>
                     </excludes>
                 </configuration>
                 <groupId>org.jacoco</groupId>
@@ -208,7 +210,7 @@
                     <reportSet>
                         <id>integration-tests</id>
                         <reports>
-                            <report>failsafe-report-only</report>
+                            <report>report-only</report>
                         </reports>
                     </reportSet>
                 </reportSets>

@@ -112,7 +112,7 @@ public class JSonPersonRepositoryTest {
         jsonPersonRepository.save(TBoyd);
 
         //THEN
-        final JsonNode personsNode = jsonPersonRepository.getJSonRepository().getNode("persons");
+        final JsonNode personsNode = jsonPersonRepository.getjSonRepository().getNode("persons");
         List<Person> actualPeople = mapper.
                 convertValue(personsNode,
                              new TypeReference<>() {
@@ -147,7 +147,7 @@ public class JSonPersonRepositoryTest {
     }
 
     @Test
-    void deleteByName_shouldDelete_SpecifiedPersonFromFile_whenPersonExists() throws Exception {
+    void deleteByName_shouldDelete_SpecifiedPersonFromFile_whenPersonExists() {
         //GIVEN an existing person in the test data source
         String           firstName      = "Jonanathan";
         String           lastName       = "Marrack";

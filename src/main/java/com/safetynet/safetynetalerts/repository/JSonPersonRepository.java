@@ -33,6 +33,10 @@ public class JSonPersonRepository implements PersonRepository {
     }
 
 
+    public JSonRepository getjSonRepository() {
+        return jSonRepository;
+    }
+
     /**
      * Reads Json file and returns a list of Person.
      *
@@ -43,7 +47,7 @@ public class JSonPersonRepository implements PersonRepository {
         final JsonNode personsNode = jSonRepository.getNode("persons");
 
         if (personsNode.isEmpty()) {
-            log.error("No people found.");
+            log.warn("No people found.");
             return Collections.emptyList();
         } else {
             List<Person> people = personMapper.
@@ -76,15 +80,9 @@ public class JSonPersonRepository implements PersonRepository {
         // Overwrite root node with new persons node
         updatePersonsNode((ObjectNode) rootNode, personsNode);
         //Write data
-        boolean success = jSonRepository.writeData(rootNode);
-        if (success) {
-            log.info("Saved new person {} {}.", firstName, lastName);
-            return personToSave;
-        } else {
-            String saveFailedErrorMessage = "Failed to save person: " + firstName + " " + lastName + ".";
-            log.error(saveFailedErrorMessage);
-            throw new Exception(saveFailedErrorMessage);
-        }
+        jSonRepository.writeData(rootNode);
+        log.info("Saved new person {} {}.", firstName, lastName);
+        return personToSave;
     }
 
 
@@ -154,7 +152,7 @@ public class JSonPersonRepository implements PersonRepository {
      *         Last name of person to delete
      */
     @Override
-    public void deleteByName(String firstName, String lastName) throws Exception {
+    public void deleteByName(String firstName, String lastName) {
         Optional<Person> personToDelete = findByName(firstName, lastName);
         List<Person>     people         = findAll();
 
@@ -164,14 +162,8 @@ public class JSonPersonRepository implements PersonRepository {
             JsonNode personsNode = personMapper.valueToTree(people);
             JsonNode rootNode    = jSonRepository.getNode("root");
             updatePersonsNode((ObjectNode) rootNode, personsNode);
-            boolean success = jSonRepository.writeData(rootNode);
-            if (success) {
-                log.info("Deleted person: {} {}", firstName, lastName);
-            } else {
-                log.error("Error when updating JSON file after deletion of Person {} {}",
-                          firstName, lastName);
-                throw new Exception("Failed to update JSON file after deletion of person " + firstName + " " + lastName + ".");
-            }
+            jSonRepository.writeData(rootNode);
+            log.info("Deleted person: {} {}", firstName, lastName);
         } else {
             String notFoundMessage = "Person " + firstName + " " + lastName + " does not exist.";
             log.error(notFoundMessage);
