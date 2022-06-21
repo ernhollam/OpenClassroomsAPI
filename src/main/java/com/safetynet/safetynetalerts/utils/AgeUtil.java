@@ -29,7 +29,7 @@ public final class AgeUtil {
                 throw new IllegalValueException("Birthdate " + birthdate + "is in the future.");
             } else {
                 int age = now.getYear() - birthdate.getYear();
-                log.debug("AgeUtil: Age for birthdate " + birthdate + "is " + age + ".");
+                log.debug("AgeUtil: Age for birthdate " + birthdate + " is " + age + ".");
                 return age;
             }
         }
