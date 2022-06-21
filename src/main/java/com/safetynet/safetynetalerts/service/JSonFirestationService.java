@@ -165,17 +165,23 @@ public class JSonFirestationService implements FirestationService {
      * Returns list of households covered by a station. The list contains the name of each person living in the
      * household, including medical record.
      *
-     * @param stationNumber
+     * @param stations
      *         Station number for which list of covered households is wanted.
      *
      * @return List of households and their inhabitants.
      */
     @Override
-    public FloodViewModel getCoveredHouseholds(int stationNumber) {
+    public FloodViewModel getCoveredHouseholds(List<Integer> stations) {
         // find addresses covered by fire station
-        List<Firestation> firestations = firestationRepository.findByStationNumber(stationNumber);
+        List<Firestation> firestations = new ArrayList<>();
+        for (Integer station : stations) {
+            List<Firestation> firestationsCoveredByStation = firestationRepository.findByStationNumber(station);
+            firestations.addAll(firestationsCoveredByStation);
+        }
         List<String> households = firestations.stream()
-                                              .map(Firestation :: getAddress).collect(Collectors.toList());
+                                              .map(Firestation :: getAddress)
+                                              .distinct()
+                                              .collect(Collectors.toList());
         // browse addresses and collect people living at these addresses as FirePersonViewModel
         Map<String, List<FirePersonViewModel>> coveredHouseholds = new HashMap<>();
         for (String household : households) {

@@ -66,5 +66,14 @@ public interface FirestationService {
      */
     Set<String> getPhoneAlert(int stationNumber);
 
-    FloodViewModel getCoveredHouseholds(int stationNumber);
+    /**
+     * Returns list of households covered by a station. The list contains the name of each person living in the
+     * household, including medical record.
+     *
+     * @param stations
+     *         Station number for which list of covered households is wanted.
+     *
+     * @return List of households and their inhabitants.
+     */
+    FloodViewModel getCoveredHouseholds(List<Integer> stations);
 }

@@ -206,17 +206,23 @@ class JSonFirestationServiceTest {
 
     @Test
     void getCoveredHouseholds_shouldReturn_firePerson() {
-        int    stationNumber = 17;
-        String address1      = "159 Rue Maréchal Cruchot";
-        String address2      = "36 Quai des Orfèvres";
-        List<Firestation> firestations = List.of(new Firestation(address1, stationNumber),
-                                                 new Firestation(address2, stationNumber));
-        when(jSonFirestationRepository.findByStationNumber(stationNumber)).thenReturn(firestations);
+        List<Integer> stations = List.of(17, 35, 15);
+        String        address1 = "159 Rue Maréchal Cruchot";
+        String        address2 = "36 Quai des Orfèvres";
+        List<Firestation> firestations1 = List.of(new Firestation(address1, stations.get(0)),
+                                                  new Firestation(address2, stations.get(0)));
+        List<Firestation> firestations2 = List.of(new Firestation(address1, stations.get(1)),
+                                                  new Firestation(address2, stations.get(1)));
+        List<Firestation> firestations3 = List.of(new Firestation(address1, stations.get(2)),
+                                                  new Firestation(address2, stations.get(2)));
+        when(jSonFirestationRepository.findByStationNumber(stations.get(0))).thenReturn(firestations1);
+        when(jSonFirestationRepository.findByStationNumber(stations.get(1))).thenReturn(firestations2);
+        when(jSonFirestationRepository.findByStationNumber(stations.get(2))).thenReturn(firestations3);
         when(jSonPersonRepository.findByAddress(any(String.class))).thenReturn(people);
         when(jSonMedicalRecordRepository.getMedicationsByName(any(String.class), any(String.class))).thenReturn(Collections.emptyList());
         when(jSonMedicalRecordRepository.getAllergiesByName(any(String.class), any(String.class))).thenReturn(Collections.emptyList());
 
-        FloodViewModel result = jSonFirestationService.getCoveredHouseholds(stationNumber);
+        FloodViewModel result = jSonFirestationService.getCoveredHouseholds(stations);
 
         assertTrue(result.getHouseholds().containsKey(address1));
         assertTrue(result.getHouseholds().containsKey(address2));

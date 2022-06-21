@@ -22,7 +22,7 @@ class FloodControllerTest {
     @Test
     void getPeopleCoveredByStation() throws Exception {
         mockMvc.perform(get("/flood")
-                                .param("station", "3"))
+                                .param("stations", "1,2,3"))
                .andDo(print())
                .andExpect(status().isOk());
     }
