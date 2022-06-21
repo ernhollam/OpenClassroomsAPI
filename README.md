@@ -13,8 +13,9 @@ Here are some situations where SafetyNet Alerts will help you save lives by givi
 
 Things you need to install the software and how to install them:
 
-- Java 11.0
-- Maven 3.6.4
+- Java 11.0.14
+- SpringBoot 2.6.6
+- Maven 3.8.4
 
 ### Running App
 
@@ -24,47 +25,31 @@ Import the code into an IDE of your choice and run SafetynetalertsApplication.ja
 
 #### Data base
 
-The database is a JSON file with all information about inhabitants, their medical records and fire stations in your city shall be located in `src/main/resources/data.json`.
-Template for the json file:
+The database is a JSON file shall be located in `src/main/resources/data.json`.
+The file must include a list of names, addresses and other information about people in your local jurisdiction. There also must be address correspondence with fire stations.
+Template for the JSON file:
 
 ```
 {
   "persons" : [ {
-    "firstName" : "John",
-    "lastName" : "Boyd",
-    "address" : "1509 Culver St",
-    "city" : "Culver",
-    "zip" : "97451",
-    "phone" : "841-874-6512",
-    "email" : "jaboyd@email.com"
-  }, {
-    "firstName" : "Felicia",
-    "lastName" : "Boyd",
-    "address" : "1509 Culver St",
-    "city" : "Culver",
-    "zip" : "97451",
-    "phone" : "841-874-6544",
-    "email" : "jaboyd@email.com"
-  } ],
+    "firstName" : "",
+    "lastName" : "",
+    "address" : "",
+    "city" : "",
+    "zip" : 12345,
+    "phone" : "",
+    "email" : ""
+    } ],
   "firestations" : [ {
-    "address" : "1509 Culver St",
-    "station" : "3"
-  }, {
-    "address" : "29 15th St",
-    "station" : "2"
+    "address" : "",
+    "station" : 3
   } ],
   "medicalrecords" : [ {
-    "firstName" : "John",
-    "lastName" : "Boyd",
-    "birthdate" : "03/06/1984",
-    "medications" : [ "aznol:350mg", "hydrapermazol:100mg" ],
-    "allergies" : [ "nillacilan" ]
-  }, {
-    "firstName" : "Felicia",
-    "lastName" : "Boyd",
-    "birthdate" : "01/08/1986",
-    "medications" : [ "tetracyclaz:650mg" ],
-    "allergies" : [ "xilliathal" ]
+    "firstName" : "",
+    "lastName" : "",
+    "birthdate" : "MM/dd/yyyy",
+    "medications" : [ "", "" ],
+    "allergies" : [ "" ]
   } ]
 }
 ```
