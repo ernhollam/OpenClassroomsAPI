@@ -70,19 +70,16 @@ public class JSonRepository {
      * Writes new node to Json file.
      *
      * @param rootNode
-     *         New data to add to JSON file
-     *
-     * @return true if no error occurred
+     *         New data to add to JSON file true if no error occurred
      */
-    public boolean writeData(JsonNode rootNode) {
+    public void writeData(JsonNode rootNode) {
         log.debug("Writing data {} into JSON file {}", rootNode, jsonFile);
         try {
             mapper.writeValue(jsonFile, rootNode);
-            return true;
+            log.debug("Data {} was successfully written.", rootNode);
         } catch (IOException ioException) {
             log.error("Failed to write data {} into file {}: {}",
                       rootNode.toString(), jsonFile, ioException);
-            return false;
         }
     }
 

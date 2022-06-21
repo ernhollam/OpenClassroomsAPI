@@ -23,7 +23,7 @@ public interface FirestationRepository {
      * @param stationNumber
      *         Station number of fire station to delete
      */
-    void deleteByStationNumber(int stationNumber) throws Exception;
+    void deleteByStationNumber(int stationNumber);
 
     /**
      * Delete firestation with specified address.

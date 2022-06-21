@@ -105,7 +105,7 @@ public class JSonMedicalRecordRepositoryTest {
         jSonMedicalRecordRepository.save(medicalRecord);
 
         //THEN
-        final JsonNode medRecordsNode = jSonMedicalRecordRepository.getJSonRepository().getNode("medicalrecords");
+        final JsonNode medRecordsNode = jSonMedicalRecordRepository.getjSonRepository().getNode("medicalrecords");
         List<MedicalRecord> actualMedicalRecords = mapper.
                 convertValue(medRecordsNode,
                              new TypeReference<>() {
@@ -136,7 +136,7 @@ public class JSonMedicalRecordRepositoryTest {
     }
 
     @Test
-    void deleteByName_shouldDelete_SpecifiedMedicalRecordFromFile_whenMedicalRecordExists() throws Exception {
+    void deleteByName_shouldDelete_SpecifiedMedicalRecordFromFile_whenMedicalRecordExists() {
         //GIVEN an existing person in the test data source
         String                  firstName             = "Jonanathan";
         String                  lastName              = "Marrack";

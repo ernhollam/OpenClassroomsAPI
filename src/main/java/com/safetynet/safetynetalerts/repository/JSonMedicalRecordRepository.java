@@ -7,44 +7,43 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 @Slf4j
-@Getter
 public class JSonMedicalRecordRepository implements MedicalRecordRepository {
 
-    private final JSonRepository              jSonRepository;
-    private final ObjectMapper                medRecordMapper;
-    private final Jackson2ObjectMapperBuilder mapperBuilder;
+    private final JSonRepository jSonRepository;
+    private final ObjectMapper   medRecordMapper;
 
     public JSonMedicalRecordRepository(JSonRepository jSonRepository, Jackson2ObjectMapperBuilder mapperBuilder) {
         this.jSonRepository = jSonRepository;
-        this.mapperBuilder = mapperBuilder;
-        this.medRecordMapper = this.mapperBuilder.build();
+        this.medRecordMapper = mapperBuilder.build();
     }
 
+    public JSonRepository getjSonRepository() {
+        return jSonRepository;
+    }
 
     /**
-     * Reads Json file and returns a list of medical records
+     * Reads Json file and returns a list of medical records.
      *
      * @return a list of MedicalRecords.
      */
-    private List<MedicalRecord> getMedicalRecordsFromJsonFile() {
+    @Override
+    public List<MedicalRecord> findAll() {
 
         final JsonNode medRecordsNode = jSonRepository.getNode("medicalrecords");
 
         if (medRecordsNode.isEmpty()) {
-            log.error("No medical records exist in JSON file.");
+            log.warn("No medical records found.");
             return Collections.emptyList();
         } else {
             List<MedicalRecord> medicalRecords = medRecordMapper.
@@ -76,27 +75,11 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
         // Overwrite root node with new medicalrecords node
         updateMedicalRecordsNode((ObjectNode) rootNode, medRecordsNode);
         //Write data
-        boolean success = jSonRepository.writeData(rootNode);
-        if (success) {
-            log.debug("Saved new medicalRecord {} {}.", medicalRecord.getFirstName(), medicalRecord.getLastName());
-            return medicalRecord;
-        } else {
-            log.error("Failed to save new medicalRecord {} {}.", medicalRecord.getFirstName(),
-                      medicalRecord.getLastName());
-            throw new Exception("Failed to save medicalRecord.");
-        }
+        jSonRepository.writeData(rootNode);
+        log.info("Saved new medicalRecord {} {}.", medicalRecord.getFirstName(), medicalRecord.getLastName());
+        return medicalRecord;
     }
 
-
-    /**
-     * Get list of all medical records in JSON file.
-     *
-     * @return list of medical records.
-     */
-    @Override
-    public List<MedicalRecord> findAll() {
-        return getMedicalRecordsFromJsonFile();
-    }
 
     /**
      * Find medical record with specified name.
@@ -110,17 +93,13 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
      */
     @Override
     public Optional<MedicalRecord> findByName(String firstName, String lastName) {
-        Optional<MedicalRecord> foundMedicalRecord = Optional.empty();
-        Iterable<MedicalRecord> medicalRecords     = getMedicalRecordsFromJsonFile();
-
-        for (MedicalRecord medicalRecord : medicalRecords) {
-            if (medicalRecord.getFirstName().equalsIgnoreCase(firstName)
-                && medicalRecord.getLastName().equalsIgnoreCase(lastName)) {
-                foundMedicalRecord = Optional.of(medicalRecord);
-                log.debug("Found medicalRecord: {}", foundMedicalRecord);
-                break;
-            }
-        }
+        List<MedicalRecord> medicalRecords = findAll();
+        Optional<MedicalRecord> foundMedicalRecord =
+                medicalRecords.stream()
+                              .filter(medicalRecord -> medicalRecord.getFirstName().equalsIgnoreCase(firstName)
+                                                       && medicalRecord.getLastName().equalsIgnoreCase(lastName))
+                              .findFirst();
+        log.debug("Found medicalRecord: {}", foundMedicalRecord);
         return foundMedicalRecord;
     }
 
@@ -133,41 +112,23 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
      *         Last name of medicalRecord to delete
      */
     @Override
-    public void deleteByName(String firstName, String lastName) throws Exception {
-        Optional<MedicalRecord> medicalRecordToDelete      = findByName(firstName, lastName);
-        Iterable<MedicalRecord> medicalRecordsFromJsonFile = getMedicalRecordsFromJsonFile();
+    public void deleteByName(String firstName, String lastName) {
+        Optional<MedicalRecord> medicalRecordToDelete = findByName(firstName, lastName);
+        List<MedicalRecord>     medicalRecords        = findAll();
 
         if (medicalRecordToDelete.isPresent()) {
-            Iterator<MedicalRecord> iterator = medicalRecordsFromJsonFile.iterator();
-            while (iterator.hasNext()) {
-                // browse list and delete if found
-                MedicalRecord medicalRecord = iterator.next();
-                if (medicalRecord.equals(medicalRecordToDelete.get())) {
-                    iterator.remove();
-                }
-            }
+            medicalRecords.removeIf(medicalRecord -> medicalRecord.equals(medicalRecordToDelete.get()));
             // update list of medical records in JSON file
-            JsonNode medicalRecordsNode = medRecordMapper.valueToTree(medicalRecordsFromJsonFile);
+            JsonNode medicalRecordsNode = medRecordMapper.valueToTree(medicalRecords);
             JsonNode rootNode           = jSonRepository.getNode("root");
             updateMedicalRecordsNode((ObjectNode) rootNode, medicalRecordsNode);
-            boolean success = jSonRepository.writeData(rootNode);
-            if (success) {
-                log.debug("Deleted {} {}'s medical record", firstName, lastName);
-            } else {
-                log.error("Error when updating JSON file after deletion of {} {}'s medical record",
-                          firstName, lastName);
-                throw new Exception("Failed to update JSON file after deletion of " + firstName + " " + lastName +
-                                    "'s medical record.'");
-            }
+            jSonRepository.writeData(rootNode);
+            log.info("Deleted {} {}'s medical record", firstName, lastName);
         } else {
             log.error("{} {}'s medical record does not exist in JSON file. ",
                       firstName, lastName);
             throw new ResourceNotFoundException("The medical record for " + firstName + " " + lastName + " you are " +
-                                                "trying to " +
-                                                "delete " +
-                                                "does" +
-                                                " not " +
-                                                "exist in JSON file.");
+                                                "trying to delete does not exist in JSON file.");
         }
     }
 
@@ -185,7 +146,9 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     public LocalDate getBirthDateByName(String firstName, String lastName) {
         Optional<MedicalRecord> medicalRecord = findByName(firstName, lastName);
         if (medicalRecord.isPresent()) {
-            return medicalRecord.get().getBirthdate();
+            LocalDate birthdate = medicalRecord.get().getBirthdate();
+            log.debug(firstName + " " + lastName + "'s birthdate is " + birthdate);
+            return birthdate;
         } else {
             String errorMessage = "Medical record for " + firstName + " " + lastName + " was not found. No birthdate" +
                                   " returned.";
@@ -208,7 +171,9 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     public List<String> getMedicationsByName(String firstName, String lastName) {
         Optional<MedicalRecord> medicalRecord = findByName(firstName, lastName);
         if (medicalRecord.isPresent()) {
-            return medicalRecord.get().getMedications();
+            List<String> medications = medicalRecord.get().getMedications();
+            log.debug("Medications for " + firstName + " " + lastName + " are: " + medications);
+            return medications;
         } else {
             return Collections.emptyList();
         }
@@ -228,7 +193,9 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
     public List<String> getAllergiesByName(String firstName, String lastName) {
         Optional<MedicalRecord> medicalRecord = findByName(firstName, lastName);
         if (medicalRecord.isPresent()) {
-            return medicalRecord.get().getAllergies();
+            List<String> allergies = medicalRecord.get().getAllergies();
+            log.debug("Allergies for " + firstName + " " + lastName + " are: " + allergies);
+            return allergies;
         } else {
             return Collections.emptyList();
         }

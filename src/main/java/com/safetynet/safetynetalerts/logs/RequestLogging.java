@@ -44,16 +44,12 @@ public class RequestLogging extends OncePerRequestFilter {
         String requestBody = getStringValue(contentCachingRequestWrapper.getContentAsByteArray(),
                                             request.getCharacterEncoding());
 
-        StringBuilder requestMessage = new StringBuilder();
-
-        requestMessage.append("REQUEST:").append(lineSeparator)
-                      .append("HTTP Method = ").append(request.getMethod()).append(lineSeparator)
-                      .append("Request URI = ").append(request.getRequestURI()).append(lineSeparator)
-                      .append("Parameters = ").append(getRequestParameters(request)).append(lineSeparator)
-                      .append("Headers = ").append(getRequestHeaders(request)).append(lineSeparator)
-                      .append("Body = ").append(requestBody);
-
-        return requestMessage.toString();
+        return "REQUEST:" + lineSeparator +
+               "HTTP Method = " + request.getMethod() + lineSeparator +
+               "Request URI = " + request.getRequestURI() + lineSeparator +
+               "Parameters = " + getRequestParameters(request) + lineSeparator +
+               "Headers = " + getRequestHeaders(request) + lineSeparator +
+               "Body = " + requestBody;
     }
 
     private String getResponseLogs(HttpServletResponse response,
@@ -62,14 +58,18 @@ public class RequestLogging extends OncePerRequestFilter {
         String requestBody = getStringValue(contentCachingResponseWrapper.getContentAsByteArray(),
                                             response.getCharacterEncoding());
 
-        StringBuilder responseMessage = new StringBuilder();
+        int responseCode = response.getStatus();
 
-        responseMessage.append("RESPONSE:").append(lineSeparator);
-        responseMessage.append("Status = ").append(response.getStatus()).append(lineSeparator);
-        responseMessage.append("Headers = ").append(getResponseHeaders(response)).append(lineSeparator);
-        responseMessage.append("Body = ").append(requestBody);
+        final String responseMessage = "RESPONSE:" + lineSeparator +
+                                       "Status = " + responseCode + lineSeparator +
+                                       "Headers = " + getResponseHeaders(response) + lineSeparator +
+                                       "Body = " + requestBody;
 
-        return responseMessage.toString();
+        if (responseCode >= 400) {
+            log.error("An error occurred:" + lineSeparator + requestBody);
+        }
+
+        return responseMessage;
     }
 
     private Map<String, String> getRequestHeaders(HttpServletRequest request) {
