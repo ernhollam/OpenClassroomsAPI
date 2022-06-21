@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.safetynet.safetynetalerts.configuration.DataPathConfiguration;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Person;
 import org.junit.jupiter.api.AfterEach;
@@ -17,8 +18,10 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,38 +30,38 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // Use this annotation to be able to make setUp() method non-static
 public class JSonPersonRepositoryTest {
-    private ObjectMapper         mapper;
-    /**
-     * Class under test.
-     */
-    @Autowired
-    private JSonPersonRepository jsonPersonRepository;
-    /**
-     * Property data source.
-     */
-    @Autowired
-    private DataPathProperties   dataPathProperties;
     /**
      * Object mapper builder.
      */
     @Autowired
     Jackson2ObjectMapperBuilder mapperBuilder;
-
-    private File     jsonFile;
-    private JsonNode originalRootNode;
-    private int      nbPeopleBeforeAnyAction;
+    private ObjectMapper          mapper;
+    /**
+     * Class under test.
+     */
+    @Autowired
+    private JSonPersonRepository  jsonPersonRepository;
+    /**
+     * Property data source.
+     */
+    @Autowired
+    private DataPathConfiguration dataPathConfiguration;
+    private File                  jsonFile;
+    private JsonNode              originalRootNode;
+    private int                   nbPeopleBeforeAnyAction;
+    private List<Person>          originalPeople;
 
     @BeforeAll
     public void setUp() throws IOException {
         mapper = mapperBuilder.build();
 
         JsonNode peopleNode;
-        String   jsonPath = dataPathProperties.getDatasource();
+        String   jsonPath = dataPathConfiguration.getDatasource();
         jsonFile = new File(jsonPath);
         try {
             originalRootNode = mapper.readTree(jsonFile);
             peopleNode = originalRootNode.get("persons");
-            List<Person> originalPeople = mapper.convertValue(peopleNode, new TypeReference<>() {
+            originalPeople = mapper.convertValue(peopleNode, new TypeReference<>() {
             });
             nbPeopleBeforeAnyAction = originalPeople.size();
         } catch (JsonProcessingException e) {
@@ -75,7 +78,7 @@ public class JSonPersonRepositoryTest {
 
     @Test
     public void findAll_shouldReturn_TheListOfAllPeople() {
-        //GIVEN JSON data file read in readJsonFile()
+        //GIVEN JSON data file read in readData()
         //WHEN calling findAll()
         List<Person> foundPeople = jsonPersonRepository.findAll();
         //THEN there must be six persons in the test file
@@ -194,4 +197,36 @@ public class JSonPersonRepositoryTest {
         assertThat(foundPerson).isEmpty();
     }
 
+    @Test
+    void findByAddress_shouldReturn_peopleAtGivenExistingAddress() {
+        String       address         = "1509 Culver St";
+        List<Person> expected        = originalPeople.stream().limit(2).collect(Collectors.toList());
+        List<Person> peopleAtAddress = jsonPersonRepository.findByAddress(address);
+
+        assertThat(peopleAtAddress).isEqualTo(expected);
+    }
+
+    @Test
+    void findByAddress_shouldReturn_emptyListOfPerson() {
+        String       address         = "834 Binoc Ave";
+        List<Person> peopleAtAddress = jsonPersonRepository.findByAddress(address);
+
+        assertThat(peopleAtAddress).isEqualTo(Collections.emptyList());
+    }
+
+    @Test
+    void findByCity_shouldFind_fourPeople() {
+        String       city            = "Culver";
+        List<Person> peopleAtAddress = jsonPersonRepository.findByCity(city);
+
+        assertThat(peopleAtAddress.size()).isEqualTo(4);
+    }
+
+    @Test
+    void findByCity_shouldFind_noOne() {
+        String       city            = "Figeac";
+        List<Person> peopleAtAddress = jsonPersonRepository.findByCity(city);
+
+        assertThat(peopleAtAddress.size()).isEqualTo(0);
+    }
 }

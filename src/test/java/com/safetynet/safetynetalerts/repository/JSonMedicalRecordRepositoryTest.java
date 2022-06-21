@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.safetynet.safetynetalerts.configuration.DataPathConfiguration;
+import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,12 +19,12 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // Use this annotation to be able to make setUp() method non-static
@@ -38,7 +40,7 @@ public class JSonMedicalRecordRepositoryTest {
      * Property data source.
      */
     @Autowired
-    private DataPathProperties          dataPathProperties;
+    private DataPathConfiguration       dataPathConfiguration;
     private File                        jsonFile;
     private JsonNode                    originalRootNode;
     private int                         nbMedicalRecordsBeforeAnyAction;
@@ -49,7 +51,7 @@ public class JSonMedicalRecordRepositoryTest {
     public void setUp() throws IOException {
         mapper = mapperBuilder.build();
         JsonNode medicalRecordsNode;
-        String   jsonPath = dataPathProperties.getDatasource();
+        String   jsonPath = dataPathConfiguration.getDatasource();
         jsonFile = new File(jsonPath);
         try {
             originalRootNode = mapper.readTree(jsonFile);
@@ -71,7 +73,7 @@ public class JSonMedicalRecordRepositoryTest {
 
     @Test
     public void findAll_shouldReturn_TheListOfAllMedicalRecords() {
-        //GIVEN JSON data file read in readJsonFile()
+        //GIVEN JSON data file read in readData()
         //WHEN calling findAll()
         List<MedicalRecord> foundMedicalRecords = jSonMedicalRecordRepository.findAll();
         //THEN there must be six persons in the test file
@@ -96,8 +98,8 @@ public class JSonMedicalRecordRepositoryTest {
         MedicalRecord medicalRecord = new MedicalRecord("Eric",
                                                         "Cadigan",
                                                         LocalDate.of(1945, 6, 8),
-                                                        new String[]{"tradoxidine:400mg"},
-                                                        new String[]{});
+                                                        List.of("tradoxidine:400mg"),
+                                                        Collections.emptyList());
 
         //WHEN calling save()
         jSonMedicalRecordRepository.save(medicalRecord);
@@ -118,8 +120,8 @@ public class JSonMedicalRecordRepositoryTest {
         MedicalRecord medicalRecord = new MedicalRecord("Eric",
                                                         "Cadigan",
                                                         LocalDate.of(1945, 6, 8),
-                                                        new String[]{"tradoxidine:400mg"},
-                                                        new String[]{});
+                                                        List.of("tradoxidine:400mg"),
+                                                        Collections.emptyList());
 
         //WHEN calling save()
         jSonMedicalRecordRepository.save(medicalRecord);
@@ -182,5 +184,75 @@ public class JSonMedicalRecordRepositoryTest {
         Optional<MedicalRecord> foundMedicalRecord = jSonMedicalRecordRepository.findByName(firstName, lastName);
         //THEN there must be six persons in the test file
         assertThat(foundMedicalRecord).isEmpty();
+    }
+
+    @Test
+    void getBirthDateByName_shouldThrow_ResourceNotFoundException() {
+        String firstName = "Lily";
+        String lastName  = "Marrack";
+        assertThrows(ResourceNotFoundException.class, () -> jSonMedicalRecordRepository.getBirthDateByName(firstName,
+                                                                                                           lastName));
+    }
+
+    @Test
+    void getBirthDateByName_shouldReturn_LocalDate() {
+        // GIVEN
+        String firstName = "Lily";
+        String lastName  = "Cooper";
+        // WHEN
+        LocalDate birthdate = jSonMedicalRecordRepository.getBirthDateByName(firstName,
+                                                                             lastName);
+        //THEN
+        assertThat(birthdate).isEqualTo(LocalDate.of(1994, 3, 6).toString());
+    }
+
+    @Test
+    void getMedicationsByName_shouldReturn_theRightListOfMedications() {
+        // GIVEN
+        String       firstName           = "John";
+        String       lastName            = "Boyd";
+        List<String> expectedMedications = List.of("aznol:350mg", "hydrapermazol:100mg");
+        // WHEN
+        List<String> medications = jSonMedicalRecordRepository.getMedicationsByName(firstName,
+                                                                                    lastName);
+        //THEN
+        assertThat(medications).isEqualTo(expectedMedications);
+    }
+
+    @Test
+    void getMedicationsByName_shouldReturn_emptyList() {
+        // GIVEN
+        String firstName = "John";
+        String lastName  = "Snow";
+        // WHEN
+        List<String> medications = jSonMedicalRecordRepository.getMedicationsByName(firstName,
+                                                                                    lastName);
+        //THEN
+        assertThat(medications).isEqualTo(Collections.emptyList());
+    }
+
+    @Test
+    void getAllergiesByName_shouldReturn_theRightListOfAllergies() {
+        // GIVEN
+        String       firstName         = "Felicia";
+        String       lastName          = "Boyd";
+        List<String> expectedAllergies = List.of("xilliathal");
+        // WHEN
+        List<String> allergies = jSonMedicalRecordRepository.getAllergiesByName(firstName,
+                                                                                lastName);
+        //THEN
+        assertEquals(allergies, expectedAllergies);
+    }
+
+    @Test
+    void getAllergiesByName_shouldReturn_emptyList() {
+        // GIVEN
+        String firstName = "Lily";
+        String lastName  = "Cooper";
+        // WHEN
+        List<String> allergies = jSonMedicalRecordRepository.getAllergiesByName(firstName,
+                                                                                lastName);
+        //THEN
+        assertThat(allergies).isEqualTo(Collections.emptyList());
     }
 }

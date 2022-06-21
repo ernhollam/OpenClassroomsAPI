@@ -1,20 +1,18 @@
-package com.safetynet.safetynetalerts.model;
+package com.safetynet.safetynetalerts.model.viewmodel;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MedicalRecord {
-
-    private String       firstName;
+public class FirePersonViewModel {
     private String       lastName;
-    private LocalDate    birthdate;
+    private String       phone;
+    private int          age;
     private List<String> medications;
     private List<String> allergies;
 }

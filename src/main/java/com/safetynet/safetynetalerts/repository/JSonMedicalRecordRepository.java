@@ -7,11 +7,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.MedicalRecord;
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.Optional;
 
 @Repository
 @Slf4j
-@Data
+@Getter
 public class JSonMedicalRecordRepository implements MedicalRecordRepository {
 
     private final JSonRepository              jSonRepository;
@@ -75,7 +76,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
         // Overwrite root node with new medicalrecords node
         updateMedicalRecordsNode((ObjectNode) rootNode, medRecordsNode);
         //Write data
-        boolean success = jSonRepository.writeJsonFile(rootNode);
+        boolean success = jSonRepository.writeData(rootNode);
         if (success) {
             log.debug("Saved new medicalRecord {} {}.", medicalRecord.getFirstName(), medicalRecord.getLastName());
             return medicalRecord;
@@ -149,7 +150,7 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
             JsonNode medicalRecordsNode = medRecordMapper.valueToTree(medicalRecordsFromJsonFile);
             JsonNode rootNode           = jSonRepository.getNode("root");
             updateMedicalRecordsNode((ObjectNode) rootNode, medicalRecordsNode);
-            boolean success = jSonRepository.writeJsonFile(rootNode);
+            boolean success = jSonRepository.writeData(rootNode);
             if (success) {
                 log.debug("Deleted {} {}'s medical record", firstName, lastName);
             } else {
@@ -167,6 +168,69 @@ public class JSonMedicalRecordRepository implements MedicalRecordRepository {
                                                 "does" +
                                                 " not " +
                                                 "exist in JSON file.");
+        }
+    }
+
+    /**
+     * Gets person's birthdate.
+     *
+     * @param firstName
+     *         Person's first name.
+     * @param lastName
+     *         Person's last name.
+     *
+     * @return Person's birthdate.
+     */
+    @Override
+    public LocalDate getBirthDateByName(String firstName, String lastName) {
+        Optional<MedicalRecord> medicalRecord = findByName(firstName, lastName);
+        if (medicalRecord.isPresent()) {
+            return medicalRecord.get().getBirthdate();
+        } else {
+            String errorMessage = "Medical record for " + firstName + " " + lastName + " was not found. No birthdate" +
+                                  " returned.";
+            log.error(errorMessage);
+            throw new ResourceNotFoundException(errorMessage);
+        }
+    }
+
+    /**
+     * Gets medications for a given person identified by their name.
+     *
+     * @param firstName
+     *         Person's first name.
+     * @param lastName
+     *         Person's last name.
+     *
+     * @return List of medications.
+     */
+    @Override
+    public List<String> getMedicationsByName(String firstName, String lastName) {
+        Optional<MedicalRecord> medicalRecord = findByName(firstName, lastName);
+        if (medicalRecord.isPresent()) {
+            return medicalRecord.get().getMedications();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Gets allergies for a given person identified by their name.
+     *
+     * @param firstName
+     *         Person's first name.
+     * @param lastName
+     *         Person's last name.
+     *
+     * @return List of medications.
+     */
+    @Override
+    public List<String> getAllergiesByName(String firstName, String lastName) {
+        Optional<MedicalRecord> medicalRecord = findByName(firstName, lastName);
+        if (medicalRecord.isPresent()) {
+            return medicalRecord.get().getAllergies();
+        } else {
+            return Collections.emptyList();
         }
     }
 

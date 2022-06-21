@@ -1,31 +1,105 @@
 package com.safetynet.safetynetalerts.service;
 
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
+import com.safetynet.safetynetalerts.model.Firestation;
 import com.safetynet.safetynetalerts.model.Person;
+import com.safetynet.safetynetalerts.model.viewmodel.*;
+import com.safetynet.safetynetalerts.repository.JSonFirestationRepository;
+import com.safetynet.safetynetalerts.repository.JSonMedicalRecordRepository;
 import com.safetynet.safetynetalerts.repository.JSonPersonRepository;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class JSonPersonServiceTest {
+    private final static LocalDate                   LOCAL_DATE_NOW = LocalDate.of(2022, 6, 13);
     /**
      * Class under test
      */
     @Autowired
-    private JSonPersonService jSonPersonService;
-
+    private              JSonPersonService           jSonPersonService;
     @MockBean
-    private JSonPersonRepository jSonPersonRepository;
+    private              JSonPersonRepository        jSonPersonRepository;
+    @MockBean
+    private              JSonMedicalRecordRepository jSonMedicalRecordRepository;
+    @MockBean
+    private              JSonFirestationRepository   jSonFirestationRepository;
+    @MockBean
+    private              Clock                       clock;
+
+    private Person       person1;
+    private Person       person2;
+    private Person       person3;
+    private List<String> medications;
+    private List<String> allergies;
+    private List<Person> people;
+
+    @BeforeAll
+    public void setUp() {
+        String address = "1509 Culver St";
+        medications = List.of("aznol:350mg", "hydrapermazol:100mg");
+        allergies = List.of("nillacilan");
+        person1 = new Person("John",
+                             "Boyd",
+                             "1509 Culver St",
+                             "Culver",
+                             97451,
+                             "841-874-6512",
+                             "jaboyd@email.com");
+        person2 = new Person("Felicia",
+                             "Boyd",
+                             "1509 Culver St",
+                             "Culver",
+                             97451,
+                             "841-874-6544",
+                             "jaboyd@email.com");
+        person3 = new Person("Tenley",
+                             "Boyd",
+                             "1509 Culver St",
+                             "Culver",
+                             97451,
+                             "841-874-6512",
+                             "tenz@email.com");
+
+
+        people = List.of(person1, person2, person3);
+
+        when(jSonMedicalRecordRepository.getMedicationsByName(any(String.class), any(String.class))).thenReturn(medications);
+        when(jSonMedicalRecordRepository.getAllergiesByName(any(String.class), any(String.class))).thenReturn(allergies);
+    }
+
+    @BeforeEach
+    public void init() {
+        // configure a fixed clock to have fixe LocalDate.now()
+        Clock fixedClock = Clock.fixed(LOCAL_DATE_NOW.atStartOfDay(ZoneId.systemDefault()).toInstant(),
+                                       ZoneId.systemDefault());
+        when(clock.instant()).thenReturn(fixedClock.instant());
+        when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        when(jSonMedicalRecordRepository.getBirthDateByName(person1.getFirstName(), person1.getLastName()))
+                .thenReturn(LocalDate.of(1984, 10, 12));
+        when(jSonMedicalRecordRepository.getBirthDateByName(person2.getFirstName(), person2.getLastName()))
+                .thenReturn(LocalDate.of(1986, 1, 8));
+        when(jSonMedicalRecordRepository.getBirthDateByName(person3.getFirstName(), person3.getLastName()))
+                .thenReturn(LocalDate.of(2012, 2, 18));
+    }
 
     @Test
     void update_shouldReturn_updatedPerson_whenPersonExists() throws Exception {
@@ -107,5 +181,202 @@ class JSonPersonServiceTest {
         // WHEN calling update()
         // THEN there must be an exception thrown
         assertThrows(ResourceNotFoundException.class, () -> jSonPersonService.updatePerson(brianStelzer));
+    }
+
+    // TODO deletePerson test
+
+    @Test
+    void getNbChildrenAndNbAdults_shouldFind_oneChildAndTwoAdults() {
+        List<Person> listPeople = List.of(person1, person2, person3);
+        when(jSonMedicalRecordRepository.getBirthDateByName(person1.getFirstName(), person1.getLastName()))
+                .thenReturn(LocalDate.of(1984, 10, 12));
+        when(jSonMedicalRecordRepository.getBirthDateByName(person2.getFirstName(), person2.getLastName()))
+                .thenReturn(LocalDate.of(1986, 1, 8));
+        when(jSonMedicalRecordRepository.getBirthDateByName(person3.getFirstName(), person3.getLastName()))
+                .thenReturn(LocalDate.of(2012, 2, 18));
+
+        Map<String, Integer> familyMembers = jSonPersonService.getNbChildrenAndNbAdults(listPeople);
+
+        assertThat(familyMembers.get("nb_adults")).isEqualTo(2);
+        assertThat(familyMembers.get("nb_children")).isEqualTo(1);
+    }
+
+    @Test
+    void getNbChildrenAndNbAdults_shouldFind_oneChildAndNoAdults() {
+        List<Person> listPeople = List.of(new Person("Tessa",
+                                                     "Carman",
+                                                     "834 Binoc Ave",
+                                                     "Culver",
+                                                     97451,
+                                                     "841-874-6512",
+                                                     "tenz@email.com"));
+        when(jSonMedicalRecordRepository.getBirthDateByName(any(String.class), any(String.class))).thenReturn(LocalDate.of(2012, 2, 18));
+
+        Map<String, Integer> familyMembers = jSonPersonService.getNbChildrenAndNbAdults(listPeople);
+
+        assertThat(familyMembers.get("nb_adults")).isEqualTo(0);
+        assertThat(familyMembers.get("nb_children")).isEqualTo(1);
+    }
+
+    @Test
+    void getNbChildrenAndNbAdults_shouldFind_noChildAndOneAdult() {
+        List<Person> listPeople = List.of(new Person("Jonanathan",
+                                                     "Marrack",
+                                                     "29 15th St",
+                                                     "Culver",
+                                                     97451,
+                                                     "841-874-6513",
+                                                     "drk@email.com"));
+        when(jSonMedicalRecordRepository.getBirthDateByName(any(String.class), any(String.class))).thenReturn(LocalDate.of(1989, 1, 3));
+
+        Map<String, Integer> familyMembers = jSonPersonService.getNbChildrenAndNbAdults(listPeople);
+
+        assertThat(familyMembers.get("nb_adults")).isEqualTo(1);
+        assertThat(familyMembers.get("nb_children")).isEqualTo(0);
+    }
+
+    @Test
+    void getChildAlert_shouldReturn_OneChildAndTwoAdults() {
+        String address = "1509 Culver St";
+        FirePersonViewModel expectedFirePerson1 = new FirePersonViewModel("Boyd",
+                                                                          "841-874-6512",
+                                                                          38,
+                                                                          medications,
+                                                                          allergies);
+        FirePersonViewModel expectedFirePerson2 = new FirePersonViewModel("Boyd",
+                                                                          "841-874-6544",
+                                                                          36,
+                                                                          medications,
+                                                                          allergies);
+
+        ChildViewModel expectedFirePerson3 = new ChildViewModel("Tenley",
+                                                                "Boyd",
+                                                                10);
+        List<Person>              listPeople                  = List.of(person1, person2, person3);
+        List<FirePersonViewModel> expectedAdultFirePersonList = List.of(expectedFirePerson1, expectedFirePerson2);
+        when(jSonPersonRepository.findByAddress(address)).thenReturn(listPeople);
+
+        ChildAlertViewModel result = jSonPersonService.getChildAlert(address);
+
+        assertThat(result.getChildren()).isEqualTo(List.of(expectedFirePerson3));
+        assertThat(result.getOtherHouseholdMembers()).isEqualTo(expectedAdultFirePersonList);
+    }
+
+    @Test
+    void getChildAlert_shouldReturn_oneChildAndNoAdults() {
+        String       address     = "1509 Culver St";
+        List<String> medications = Collections.emptyList();
+        List<String> allergies   = Collections.emptyList();
+        List<Person> listPeople = List.of(new Person("Tessa",
+                                                     "Carman",
+                                                     "834 Binoc Ave",
+                                                     "Culver",
+                                                     97451,
+                                                     "841-874-6512",
+                                                     "tenz@email.com"));
+        List<ChildViewModel> child = List.of(new ChildViewModel("Tessa", "Carman", 10));
+        when(jSonPersonRepository.findByAddress(address)).thenReturn(listPeople);
+        when(jSonMedicalRecordRepository.getBirthDateByName(any(String.class), any(String.class))).thenReturn(LocalDate.of(2012, 2, 18));
+        when(jSonMedicalRecordRepository.getMedicationsByName(any(String.class), any(String.class))).thenReturn(medications);
+        when(jSonMedicalRecordRepository.getAllergiesByName(any(String.class), any(String.class))).thenReturn(allergies);
+
+        ChildAlertViewModel result = jSonPersonService.getChildAlert(address);
+
+        assertThat(result.getOtherHouseholdMembers()).isEqualTo(Collections.emptyList());
+        assertThat(result.getChildren()).isEqualTo(child);
+    }
+
+    @Test
+    void getChildAlert_shouldReturn_noChildAndOneAdult() {
+        String       address     = "1509 Culver St";
+        List<String> medications = List.of("aznol:350mg", "hydrapermazol:100mg");
+        List<String> allergies   = List.of("nillacilan");
+        List<Person> listPeople = List.of(new Person("Jonanathan",
+                                                     "Marrack",
+                                                     "29 15th St",
+                                                     "Culver",
+                                                     97451,
+                                                     "841-874-6513",
+                                                     "drk@email.com"));
+
+        List<FirePersonViewModel> listFirePersonViewModel = List.of(new FirePersonViewModel("Marrack",
+                                                                                            "841-874-6513",
+                                                                                            33,
+                                                                                            medications,
+                                                                                            allergies));
+        when(jSonPersonRepository.findByAddress(address)).thenReturn(listPeople);
+        when(jSonMedicalRecordRepository.getBirthDateByName(any(String.class), any(String.class))).thenReturn(LocalDate.of(1989, 1, 3));
+        when(jSonMedicalRecordRepository.getMedicationsByName(any(String.class), any(String.class))).thenReturn(medications);
+        when(jSonMedicalRecordRepository.getAllergiesByName(any(String.class), any(String.class))).thenReturn(allergies);
+
+        ChildAlertViewModel result = jSonPersonService.getChildAlert(address);
+
+        assertThat(result.getChildren()).isEqualTo(Collections.emptyList());
+        assertThat(result.getOtherHouseholdMembers()).isEqualTo(listFirePersonViewModel);
+    }
+
+
+    @Test
+    void getFirePeople_shouldReturn_aFireViewModel() {
+        int    stationNumber = 3;
+        String address       = "address";
+        when(jSonFirestationRepository.findByAddress(any(String.class))).thenReturn(Optional.of(new Firestation(
+                "address", stationNumber)));
+
+        when(jSonPersonRepository.findByAddress(address)).thenReturn(people);
+
+        FireViewModel result = jSonPersonService.getFirePeople(address);
+
+        assertThat(result.getStationNumber()).isEqualTo(stationNumber);
+        assertFalse(result.getPeopleAtAddress().isEmpty());
+    }
+
+    @Test
+    void getFirePeople_shouldThrow_ResourceNotFoundException() {
+        when(jSonFirestationRepository.findByAddress(any(String.class))).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> jSonPersonService.getFirePeople("address"));
+    }
+
+    @Test
+    void getPersonInfo_shouldReturn_PersonInfo() {
+        String firstName = person1.getFirstName();
+        String lastName  = person1.getLastName();
+        when(jSonPersonRepository.findByName(firstName, lastName)).thenReturn(Optional.of(person1));
+        when(jSonPersonRepository.findAll()).thenReturn(people);
+        when(jSonMedicalRecordRepository.getBirthDateByName(firstName, lastName)).thenReturn(LocalDate.of(1984, 3, 6));
+        when(jSonMedicalRecordRepository.getMedicationsByName(firstName, lastName)).thenReturn(medications);
+        when(jSonMedicalRecordRepository.getAllergiesByName(firstName, lastName)).thenReturn(allergies);
+
+        PersonInfoViewModel result = jSonPersonService.getPersonInfo(person1.getFirstName(),
+                                                                     person1.getLastName());
+        List<Person> peopleWithSameName = List.of(person2, person3);
+
+        assertThat(result.getLastName()).isEqualTo(lastName);
+        assertThat(result.getAddress()).isEqualTo(person1.getAddress());
+        assertThat(result.getAge()).isEqualTo(38);
+        assertThat(result.getEmail()).isEqualTo(person1.getEmail());
+        assertThat(result.getMedications()).isEqualTo(medications);
+        assertThat(result.getAllergies()).isEqualTo(allergies);
+        assertThat(result.getPeopleWithSameName()).isEqualTo(peopleWithSameName);
+    }
+
+    @Test
+    void getPersonInfo_shouldThrow_ResourceNotFoundException() {
+        when(jSonPersonRepository.findByName(person1.getFirstName(), person1.getLastName())).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> jSonPersonService.getPersonInfo(person1.getFirstName(),
+                                                                                            person1.getLastName()));
+    }
+
+    @Test
+    void getCommunityEmail_shouldReturn_expectedListOfEmails_withoutDuplicates() {
+        String      city           = "Culver";
+        Set<String> expectedEmails = Set.of(person1.getEmail(), person3.getEmail());
+        when(jSonPersonRepository.findByCity(city)).thenReturn(people);
+
+        Set<String> communityEmails = jSonPersonService.getCommunityEmail(city);
+
+        assertThat(communityEmails).isEqualTo(expectedEmails);
     }
 }

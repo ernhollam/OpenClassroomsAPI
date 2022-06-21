@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Repository;
@@ -18,14 +18,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@Data
 @Slf4j
+@Getter
 public class JSonFirestationRepository implements FirestationRepository {
 
     private final JSonRepository jSonRepository;
 
-    private Jackson2ObjectMapperBuilder mapperBuilder;
-    private ObjectMapper                firestationMapper;
+    private final Jackson2ObjectMapperBuilder mapperBuilder;
+    private final ObjectMapper                firestationMapper;
 
     public JSonFirestationRepository(JSonRepository jSonRepository, Jackson2ObjectMapperBuilder mapperBuilder) {
         this.jSonRepository = jSonRepository;
@@ -74,7 +74,7 @@ public class JSonFirestationRepository implements FirestationRepository {
         // Overwrite root node with new persons node
         updateFirestationsNode((ObjectNode) rootNode, firestationsNode);
         //Write data
-        boolean success          = jSonRepository.writeJsonFile(rootNode);
+        boolean success          = jSonRepository.writeData(rootNode);
         int     newStationNumber = firestationToSave.getStation();
         if (success) {
             log.debug("Saved new firestation n°{}.", newStationNumber);
@@ -161,7 +161,7 @@ public class JSonFirestationRepository implements FirestationRepository {
             JsonNode updatedFirestationsNode = firestationMapper.valueToTree(firestationsInDataSource);
             JsonNode rootNode                = jSonRepository.getNode("root");
             updateFirestationsNode((ObjectNode) rootNode, updatedFirestationsNode);
-            boolean success = jSonRepository.writeJsonFile(rootNode);
+            boolean success = jSonRepository.writeData(rootNode);
             if (success) {
                 log.debug("Deleted firestation n°{}", stationNumber);
             } else {
@@ -193,7 +193,7 @@ public class JSonFirestationRepository implements FirestationRepository {
         JsonNode updatedFirestationsNode = firestationMapper.valueToTree(firestationsInDataSource);
         JsonNode rootNode                = jSonRepository.getNode("root");
         updateFirestationsNode((ObjectNode) rootNode, updatedFirestationsNode);
-        boolean success = jSonRepository.writeJsonFile(rootNode);
+        boolean success = jSonRepository.writeData(rootNode);
         if (!success) {
             throw new Exception("Failed to update JSON file after deletion of firestation with the following " +
                                 "address:\n" + address);

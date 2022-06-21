@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safetynet.safetynetalerts.configuration.DataPathConfiguration;
 import com.safetynet.safetynetalerts.exceptions.ResourceNotFoundException;
 import com.safetynet.safetynetalerts.model.Firestation;
 import org.junit.jupiter.api.AfterEach;
@@ -39,7 +40,7 @@ class JSonFirestationRepositoryTest {
      * Property data source.
      */
     @Autowired
-    private DataPathProperties          dataPathProperties;
+    private DataPathConfiguration       dataPathConfiguration;
     private File                        jsonFile;
     private JsonNode                    originalRootNode;
     private int                         nbFirestationsBeforeAnyAction;
@@ -51,7 +52,7 @@ class JSonFirestationRepositoryTest {
         mapper = mapperBuilder.build();
 
         JsonNode firestationsNode;
-        String   jsonPath = dataPathProperties.getDatasource();
+        String   jsonPath = dataPathConfiguration.getDatasource();
         jsonFile = new File(jsonPath);
         try {
             originalRootNode = mapper.readTree(jsonFile);
@@ -74,7 +75,7 @@ class JSonFirestationRepositoryTest {
 
     @Test
     public void findAll_shouldReturn_TheListOfAllFirestations() {
-        //GIVEN JSON data file read in readJsonFile()
+        //GIVEN JSON data file read in readData()
         //WHEN calling findAll()
         List<Firestation> foundPeople = jSonFirestationRepository.findAll();
         //THEN there must be six firestations in the test file

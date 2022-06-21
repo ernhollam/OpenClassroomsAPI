@@ -31,11 +31,10 @@ class JSonMedicalRecordServiceTest {
     @Test
     void update_shouldReturn_updatedMedicalRecord_whenExists() throws Exception {
         // GIVEN existing medical record with added medications
-        String firstName = "Lily";
-        String lastName  = "Cooper";
-        String[] medications = {"tradoxidine:400mg",
-                                "pharmacol:2500mg"};
-        String[] allergies = {"peanut"};
+        String       firstName   = "Lily";
+        String       lastName    = "Cooper";
+        List<String> medications = List.of("tradoxidine:400mg", "pharmacol:2500mg");
+        List<String> allergies   = List.of("peanuts");
         MedicalRecord medicalRecord = new MedicalRecord(firstName,
                                                         lastName,
                                                         LocalDate.of(1984, 3, 6),
@@ -55,11 +54,10 @@ class JSonMedicalRecordServiceTest {
     @Test
     void update_shouldNot_AddDuplicates() throws Exception {
         // GIVEN existing medical record John Boyd with added medications
-        String firstName = "John";
-        String lastName  = "Boyd";
-        String[] medications = {"tradoxidine:400mg",
-                                "pharmacol:2500mg"};
-        String[] allergies = {"peanut"};
+        String       firstName   = "John";
+        String       lastName    = "Boyd";
+        List<String> medications = List.of("tradoxidine:400mg", "pharmacol:2500mg");
+        List<String> allergies   = List.of("peanuts");
         MedicalRecord medicalRecord = new MedicalRecord(firstName,
                                                         lastName,
                                                         LocalDate.of(1984, 3, 6),
@@ -97,4 +95,6 @@ class JSonMedicalRecordServiceTest {
         // THEN there must be an exception thrown
         assertThrows(ResourceNotFoundException.class, () -> jSonMedicalRecordService.updateMedicalRecord(brianStelzer));
     }
+
+    //TODO deleteMedicalRecord test
 }

@@ -20,6 +20,13 @@ public class ControllerExceptionHandler {
         return "Resource not found:\n" + notFoundException.getMessage();
     }
 
+    @ExceptionHandler(IllegalValueException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String illegalValueException(IllegalValueException illegalValueException) {
+        log.error("Illegal argument value.", illegalValueException);
+        return "Illegal argument value:\n" + illegalValueException.getMessage();
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String returnMessage(Exception exception) {

@@ -2,6 +2,7 @@ package com.safetynet.safetynetalerts.repository;
 
 import com.safetynet.safetynetalerts.model.MedicalRecord;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,10 +35,18 @@ public interface MedicalRecordRepository {
     /**
      * Find medical record with specified ID.
      *
-     * @param firstName First name of medical record to find
-     * @param lastName  Last name of medical record to find
+     * @param firstName
+     *         First name of medical record to find
+     * @param lastName
+     *         Last name of medical record to find
      *
      * @return Found medical record
      */
     Optional<MedicalRecord> findByName(String firstName, String lastName);
+
+    LocalDate getBirthDateByName(String firstName, String lastName);
+
+    List<String> getMedicationsByName(String firstName, String lastName);
+
+    List<String> getAllergiesByName(String firstName, String lastName);
 }
