@@ -203,7 +203,7 @@ public class JSonFirestationService implements FirestationService {
             coveredHouseholds.put(household, firePeopleInHousehold);
         }
 
-        log.debug("The following households and their members are covered by station number {}:\n{}", stationNumber,
+        log.debug("The following households and their members are covered by station number {}:\n{}", stations,
                   coveredHouseholds);
 
         return new FloodViewModel(coveredHouseholds);
