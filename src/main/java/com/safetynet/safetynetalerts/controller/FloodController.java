@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/flood")
 public class FloodController {
@@ -15,7 +17,7 @@ public class FloodController {
     private JSonFirestationService jSonFirestationService;
 
     @GetMapping
-    public FloodViewModel getCoveredHouseHold(@RequestParam(name = "station") int stationNumber) {
-        return jSonFirestationService.getCoveredHouseholds(stationNumber);
+    public FloodViewModel getCoveredHouseHold(@RequestParam(name = "stations") List<Integer> stations) {
+        return jSonFirestationService.getCoveredHouseholds(stations);
     }
 }
