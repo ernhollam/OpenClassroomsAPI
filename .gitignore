@@ -7,6 +7,7 @@ target/
 !**/src/test/**/target/
 /src/main/resources/**.json
 /src/test/resources/**.json
+/logs
 *.log
 *.gz
 
