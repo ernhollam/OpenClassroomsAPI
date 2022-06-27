@@ -64,6 +64,10 @@ This will generate a `site` folder within the `target` folder. By opening the `i
 
 ## Usage
 
+### Documentation
+
+API documentation can be found [here](https://documenter.getpostman.com/view/20128084/UzBsJjoM).
+
 ### Actuators
 
 Actuator endpoints let you monitor and interact with your application. The following built-in endpoints are enabled for SafetyNet Alerts:
